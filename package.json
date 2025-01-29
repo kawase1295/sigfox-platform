@@ -13,6 +13,10 @@
     "node": ">=10.15.2",
     "npm": ">=6.4.1"
   },
+  "engines": {
+    "node":"14.3",
+    "npm":"6.2"
+  },
   "scripts": {
     "contributors:add": "all-contributors add",
     "preinstall": "cd backend/ && yarn --frozen-lockfile && cd ../frontend && yarn --frozen-lockfile && cd ..",
