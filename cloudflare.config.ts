@@ -1,4 +1,4 @@
-import { bindings, defineConfig } from "cf/config";
+import { bindings, defineConfig, triggers } from "cf/config";
 import * as entrypoint from "./src/worker/index.ts" with { type: "cf-worker" };
 
 // Why not omit the id everywhere: `cf d1 migrations --local` only accepts a UUID (cloudflare/cf#38).
@@ -24,7 +24,11 @@ export default defineConfig(({ mode }) => ({
 		env: {
 			DB: bindings.d1({ name: "sigfox-platform-db", id: mode === "production" ? undefined : LOCAL_D1_ID }),
 			ASSETS: bindings.assets(),
+			// Days of messages to keep; "0" keeps everything. A plain var so the Deploy button and dashboard can edit it.
+			RETENTION_DAYS: bindings.text<string>("365"),
 			...authEnv(mode),
 		},
+		// Daily retention purge (src/worker/services/retention.ts), off-peak UTC.
+		triggers: [triggers.scheduled({ schedule: "0 3 * * *" })],
 	},
 }));
