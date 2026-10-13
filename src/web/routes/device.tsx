@@ -2,7 +2,8 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { Link } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import type { Message } from "#shared/devices";
-import { getDevice, listMessages, listParsers, updateDevice } from "../api/client";
+import { getDevice, listMessages, listParsers, listTrack, updateDevice } from "../api/client";
+import { locationLines, MapPanel } from "../components/map-panel";
 import { ParsedValues } from "../components/parsed-values";
 import { formatDateTime } from "../format";
 import { useI18n } from "../i18n";
@@ -19,6 +20,7 @@ export function DevicePage({ deviceId }: { deviceId: string }) {
 		getNextPageParam: (last) => last.nextCursor,
 	});
 	const rows = messages.data?.pages.flatMap((p) => p.messages) ?? [];
+	const track = useQuery({ queryKey: ["devices", deviceId, "locations"], queryFn: () => listTrack(deviceId) });
 
 	return (
 		<section className="section">
@@ -37,6 +39,27 @@ export function DevicePage({ deviceId }: { deviceId: string }) {
 			)}
 			{device.data && <RenameForm deviceId={deviceId} name={device.data.name} />}
 			{device.data && <ParserSelect deviceId={deviceId} parserId={device.data.parserId} />}
+
+			<h2 className="heading-20">{t("device.locations")}</h2>
+			{track.isPending ? (
+				<p className="copy-14 secondary">{t("common.loading")}</p>
+			) : track.isError ? (
+				<p className="copy-14 error" role="alert">
+					{t("device.locationsError")}
+				</p>
+			) : track.data.length === 0 ? (
+				<p className="copy-14 secondary">{t("device.noLocations")}</p>
+			) : (
+				<MapPanel
+					locations={track.data}
+					mode="track"
+					label={t("map.trackLabel")}
+					describe={(l) => {
+						const [time = "", ...rest] = locationLines(l, t, locale);
+						return { title: time, lines: rest };
+					}}
+				/>
+			)}
 
 			<h2 className="heading-20">{t("device.messages")}</h2>
 			{messages.isPending ? (

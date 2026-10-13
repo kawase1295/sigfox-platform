@@ -8,9 +8,11 @@ import {
 	messagePageQuerySchema,
 	updateDeviceRequestSchema,
 } from "#shared/devices";
+import { type LocationList, trackQuerySchema } from "#shared/locations";
 import type { AppEnv } from "../auth/middleware";
 import { createDb } from "../db/client";
 import { decodeCursor, getDevice, listDevices, listMessages, updateDevice } from "../db/devices";
+import { listTrack } from "../db/locations";
 import { parserExists } from "../db/parsers";
 
 type DeviceEnv = AppEnv & { Variables: { deviceId: string } };
@@ -60,5 +62,16 @@ export const deviceRoutes = new Hono<DeviceEnv>()
 			if (rawCursor !== undefined && !cursor) return c.json(invalidRequest, 400);
 			if (!(await getDevice(db, c.var.deviceId))) return c.json(notFound, 404);
 			return c.json((await listMessages(db, c.var.deviceId, { cursor, limit })) satisfies MessagePage);
+		},
+	)
+	.get(
+		"/:id/locations",
+		zValidator("query", trackQuerySchema, (result, c) => {
+			if (!result.success) return c.json(invalidRequest, 400);
+		}),
+		async (c) => {
+			const db = createDb(c.env.DB);
+			if (!(await getDevice(db, c.var.deviceId))) return c.json(notFound, 404);
+			return c.json({ locations: await listTrack(db, c.var.deviceId, c.req.valid("query")) } satisfies LocationList);
 		},
 	);

@@ -18,10 +18,16 @@ export const deviceSchema = z.strictObject({
 export const receptionSchema = z.strictObject({
 	station: z.string(),
 	rssi: z.number(),
-	snr: z.number(),
-	// Why a source: DATA_ADVANCED (#9) reports the same receptions with different detail.
-	source: z.enum(["uplink"]),
+	/** Only DATA/UPLINK reports it reliably; DATA_ADVANCED duplicates may omit it. */
+	snr: z.number().optional(),
+	/** Repetitions the station received, from DATA_ADVANCED duplicates. */
+	nbRep: z.number().int().nonnegative().optional(),
+	/** `uplink` once the station's DATA/UPLINK arrived; `advanced` while it is known only from DATA_ADVANCED. */
+	source: z.enum(["uplink", "advanced"]),
 });
+
+/** Sigfox link quality indicator from DATA_ADVANCED. */
+export const lqiSchema = z.enum(["LIMIT", "AVERAGE", "GOOD", "EXCELLENT", "NA"]);
 
 export const messageSchema = z.strictObject({
 	id: z.number().int(),
@@ -30,6 +36,8 @@ export const messageSchema = z.strictObject({
 	seqNumber: z.number().int(),
 	data: z.string(),
 	receptions: z.array(receptionSchema),
+	/** Null until a DATA_ADVANCED callback for the message arrives. */
+	lqi: lqiSchema.nullable(),
 	createdAt: z.iso.datetime(),
 	updatedAt: z.iso.datetime(),
 	/** Null until the device's parser ran on this message, or when it failed (see parseError). */
@@ -68,6 +76,7 @@ export const updateDeviceRequestSchema = z
 
 export type Device = z.infer<typeof deviceSchema>;
 export type Reception = z.infer<typeof receptionSchema>;
+export type Lqi = z.infer<typeof lqiSchema>;
 export type Message = z.infer<typeof messageSchema>;
 export type DeviceList = z.infer<typeof deviceListSchema>;
 export type MessagePage = z.infer<typeof messagePageSchema>;

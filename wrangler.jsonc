@@ -19,7 +19,8 @@
 		]
 	},
 	"vars": {
-		"RETENTION_DAYS": "365"
+		"RETENTION_DAYS": "365",
+		"MAP_STYLE_URL": "https://tiles.openfreemap.org/styles/liberty"
 	},
 	"secrets": {
 		"required": [

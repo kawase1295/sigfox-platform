@@ -3,10 +3,11 @@ import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { createDb } from "../../src/worker/db/client";
-import { devices, messages } from "../../src/worker/db/schema";
+import { devices, locations, messages } from "../../src/worker/db/schema";
 import worker from "../../src/worker/index";
 import {
 	DEFAULT_RETENTION_DAYS,
+	PURGE_TARGETS,
 	parseRetentionDays,
 	purgeExpired,
 	runRetention,
@@ -83,7 +84,8 @@ describe("purgeExpired", () => {
 	it("deletes in several bounded batches", async () => {
 		const id = await seedDevice(Array.from({ length: 7 }, (_, i) => NOW_S - 400 * DAY - i));
 
-		const partial = await purgeExpired(env.DB, { days: 365, now: NOW, batchSize: 2, maxStatements: 2 });
+		const targets = PURGE_TARGETS.filter((t) => t.name === "messages");
+		const partial = await purgeExpired(env.DB, { days: 365, now: NOW, batchSize: 2, maxStatements: 2, targets });
 		expect(partial).toMatchObject({ deleted: { messages: 4 }, complete: false });
 		expect((await remainingTimes(id)).length).toBeGreaterThan(0);
 
@@ -91,6 +93,25 @@ describe("purgeExpired", () => {
 		expect(rest.complete).toBe(true);
 		expect(await remainingTimes(id)).toEqual([]);
 		expect(await deviceExists(id)).toBe(true);
+	});
+});
+
+describe("purgeExpired with locations", () => {
+	it("purges expired locations along with their messages", async () => {
+		const cutoff = NOW_S - 30 * DAY;
+		const id = await seedDevice([cutoff - 1, cutoff]);
+		const db = createDb(env.DB);
+		for (const m of await db.select().from(messages).where(eq(messages.deviceId, id))) {
+			await db
+				.insert(locations)
+				.values({ deviceId: id, messageId: m.id, time: m.time, lat: 1, lng: 2, source: "gps", createdAt: NOW });
+		}
+
+		const result = await purgeExpired(env.DB, { days: 30, now: NOW });
+
+		const left = await db.select({ time: locations.time }).from(locations).where(eq(locations.deviceId, id));
+		expect(left).toEqual([{ time: cutoff }]);
+		expect(result.deleted.locations).toBeGreaterThanOrEqual(1);
 	});
 });
 

@@ -1,11 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { UPLINK_BODY_TEMPLATE, UPLINK_CALLBACK_PATH } from "#shared/sigfox";
+import type { ReactNode } from "react";
+import {
+	ADVANCED_BODY_TEMPLATE,
+	ADVANCED_CALLBACK_PATH,
+	UPLINK_BODY_TEMPLATE,
+	UPLINK_CALLBACK_PATH,
+} from "#shared/sigfox";
 import { CopyButton } from "../components/copy-button";
 import { useI18n } from "../i18n";
 
 export function CallbackSetupPage() {
 	const { t } = useI18n();
-	const url = `${location.origin}${UPLINK_CALLBACK_PATH}`;
 
 	return (
 		<section className="section">
@@ -15,17 +20,6 @@ export function CallbackSetupPage() {
 			</header>
 
 			<dl className="settings-list">
-				<div>
-					<dt className="label-13 secondary">{t("callback.type")}</dt>
-					<dd className="mono">DATA / UPLINK</dd>
-				</div>
-				<div>
-					<dt className="label-13 secondary">{t("callback.url")}</dt>
-					<dd className="copy-row">
-						<code className="secret">{url}</code>
-						<CopyButton text={url} label={t("callback.copyUrl")} />
-					</dd>
-				</div>
 				<div>
 					<dt className="label-13 secondary">{t("callback.method")}</dt>
 					<dd className="mono">POST</dd>
@@ -46,15 +40,51 @@ export function CallbackSetupPage() {
 						</span>
 					</dd>
 				</div>
+			</dl>
+
+			<CallbackType
+				type="DATA / UPLINK"
+				body={t("callback.uplinkBody")}
+				path={UPLINK_CALLBACK_PATH}
+				template={UPLINK_BODY_TEMPLATE}
+				note={t("callback.duplicates")}
+			/>
+			<CallbackType
+				type="DATA / ADVANCED"
+				body={t("callback.advancedBody")}
+				path={ADVANCED_CALLBACK_PATH}
+				template={ADVANCED_BODY_TEMPLATE}
+			/>
+		</section>
+	);
+}
+
+type CallbackTypeProps = { type: string; body: string; path: string; template: string; note?: ReactNode };
+
+function CallbackType({ type, body, path, template, note }: CallbackTypeProps) {
+	const { t } = useI18n();
+	const url = `${location.origin}${path}`;
+	return (
+		<section className="stack">
+			<h2 className="heading-20 mono">{type}</h2>
+			<p className="copy-14 secondary">{body}</p>
+			<dl className="settings-list">
+				<div>
+					<dt className="label-13 secondary">{t("callback.url")}</dt>
+					<dd className="copy-row">
+						<code className="secret">{url}</code>
+						<CopyButton text={url} label={t("callback.copyUrl")} />
+					</dd>
+				</div>
 				<div>
 					<dt className="label-13 secondary">{t("callback.bodyTemplate")}</dt>
 					<dd className="copy-row">
-						<code className="secret">{UPLINK_BODY_TEMPLATE}</code>
-						<CopyButton text={UPLINK_BODY_TEMPLATE} label={t("callback.copyBody")} />
+						<code className="secret">{template}</code>
+						<CopyButton text={template} label={t("callback.copyBody")} />
 					</dd>
 				</div>
 			</dl>
-			<p className="copy-14 secondary">{t("callback.duplicates")}</p>
+			{note && <p className="copy-14 secondary">{note}</p>}
 		</section>
 	);
 }

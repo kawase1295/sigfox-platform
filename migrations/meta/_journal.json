@@ -29,6 +29,13 @@
       "when": 1791867380825,
       "tag": "0003_parsers",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791869140269,
+      "tag": "0004_advanced_locations",
+      "breakpoints": true
     }
   ]
 }

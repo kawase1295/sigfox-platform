@@ -1,5 +1,6 @@
 import type { InfiniteData, QueryClient } from "@tanstack/react-query";
 import type { Device, Message, MessagePage } from "#shared/devices";
+import type { Location } from "#shared/locations";
 import type { RealtimeEvent } from "#shared/realtime";
 
 // Mirrors the keys used by routes/devices.tsx and routes/device.tsx; the shell tests catch drift.
@@ -7,6 +8,11 @@ export const deviceKeys = {
 	all: ["devices"] as const,
 	detail: (id: string) => ["devices", id] as const,
 	messages: (id: string) => ["devices", id, "messages"] as const,
+	track: (id: string) => ["devices", id, "locations"] as const,
+};
+
+export const locationKeys = {
+	latest: ["locations", "latest"] as const,
 };
 
 type MessagePages = InfiniteData<MessagePage, string | null>;
@@ -24,7 +30,10 @@ export function applyRealtimeEvent(client: QueryClient, event: RealtimeEvent): v
 			);
 			return;
 		case "location.created":
-			// Why ignored: no location queries exist yet; the map (#9) adds its cache handling here.
+			client.setQueryData<Location[]>(locationKeys.latest, (list) => list && upsertLatest(list, event.location));
+			client.setQueryData<Location[]>(deviceKeys.track(event.location.deviceId), (track) =>
+				track ? insertTrackPoint(track, event.location) : track,
+			);
 			return;
 	}
 }
@@ -57,4 +66,22 @@ function upsertMessage(data: MessagePages, message: Message): MessagePages {
 	const messages = [...first.messages];
 	messages.splice(at === -1 ? messages.length : at, 0, message);
 	return { ...data, pages: [{ ...first, messages }, ...rest] };
+}
+
+// Same rule as the API: newest frame wins, and within one frame a GPS fix beats the Sigfox estimate.
+const beats = (a: Location, b: Location) => a.time > b.time || (a.time === b.time && a.source === "gps");
+
+function upsertLatest(list: Location[], location: Location): Location[] {
+	const current = list.find((l) => l.deviceId === location.deviceId);
+	if (current && !beats(location, current)) return list;
+	return [...list.filter((l) => l.deviceId !== location.deviceId), location];
+}
+
+// Oldest first, like the API. A late frame (out-of-order callback) lands in its time slot, not at the end.
+function insertTrackPoint(track: Location[], location: Location): Location[] {
+	if (track.some((l) => l.id === location.id)) return track;
+	const at = track.findIndex((l) => l.time > location.time);
+	const next = [...track];
+	next.splice(at === -1 ? next.length : at, 0, location);
+	return next;
 }

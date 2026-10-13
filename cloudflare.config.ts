@@ -27,6 +27,8 @@ export default defineConfig(({ mode }) => ({
 			ASSETS: bindings.assets(),
 			// Days of messages to keep; "0" keeps everything. A plain var so the Deploy button and dashboard can edit it.
 			RETENTION_DAYS: bindings.text<string>("365"),
+			// MapLibre style for every map; any style JSON URL works (default: OpenFreeMap, no API key).
+			MAP_STYLE_URL: bindings.text<string>("https://tiles.openfreemap.org/styles/liberty"),
 			REALTIME: bindings.durableObject({ worker: "sigfox-platform", exportName: "RealtimeHub" }),
 			...authEnv(mode),
 		},

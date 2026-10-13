@@ -1,7 +1,9 @@
 import type { z } from "zod";
 import { apiTokenListSchema, type CreateApiTokenRequest, createApiTokenResponseSchema } from "#shared/api-tokens";
 import { meResponseSchema } from "#shared/auth";
+import { configResponseSchema } from "#shared/config";
 import { deviceListSchema, deviceSchema, messagePageSchema, type UpdateDeviceRequest } from "#shared/devices";
+import { locationListSchema } from "#shared/locations";
 import {
 	type CreateParserRequest,
 	parseResultSchema,
@@ -51,6 +53,14 @@ export function listMessages(id: string, cursor: string | null) {
 	const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
 	return request(messagePageSchema, `${devicePath(id)}/messages${query}`);
 }
+
+export const fetchConfig = () => request(configResponseSchema, "/api/config");
+
+export const listLatestLocations = () => request(locationListSchema, "/api/locations/latest").then((r) => r.locations);
+
+/** The newest positions (server default limit), oldest first. */
+export const listTrack = (id: string) =>
+	request(locationListSchema, `${devicePath(id)}/locations`).then((r) => r.locations);
 
 const jsonInit = (method: string, body: unknown): RequestInit => ({
 	method,
