@@ -26,7 +26,11 @@ export default defineConfig(async () => {
 							},
 						}),
 					],
-					test: { name: "worker", include: ["test/worker/**/*.test.ts"], setupFiles: ["./test/apply-migrations.ts"] },
+					test: {
+						name: "worker",
+						include: ["test/worker/**/*.test.ts"],
+						setupFiles: ["./test/apply-migrations.ts", "./test/warm-realtime.ts"],
+					},
 				},
 				{
 					plugins: [react()],
