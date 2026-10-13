@@ -10,7 +10,8 @@ import {
 } from "#shared/devices";
 import type { AppEnv } from "../auth/middleware";
 import { createDb } from "../db/client";
-import { decodeCursor, getDevice, listDevices, listMessages, renameDevice } from "../db/devices";
+import { decodeCursor, getDevice, listDevices, listMessages, updateDevice } from "../db/devices";
+import { parserExists } from "../db/parsers";
 
 type DeviceEnv = AppEnv & { Variables: { deviceId: string } };
 
@@ -39,7 +40,11 @@ export const deviceRoutes = new Hono<DeviceEnv>()
 			if (!result.success) return c.json(invalidRequest, 400);
 		}),
 		async (c) => {
-			const device = await renameDevice(createDb(c.env.DB), c.var.deviceId, c.req.valid("json").name);
+			const db = createDb(c.env.DB);
+			const changes = c.req.valid("json");
+			// Why check first: a dangling id would surface as an opaque foreign key failure (500).
+			if (changes.parserId && !(await parserExists(db, changes.parserId))) return c.json(invalidRequest, 400);
+			const device = await updateDevice(db, c.var.deviceId, changes);
 			return device ? c.json(device) : c.json(notFound, 404);
 		},
 	)

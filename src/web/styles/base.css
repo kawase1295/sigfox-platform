@@ -446,3 +446,72 @@ a.button {
 	flex: 1 1 320px;
 	min-width: 0;
 }
+
+.stack-form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.field.wide {
+	max-width: none;
+}
+
+select.input {
+	padding-right: var(--space-8);
+}
+
+/* CodeMirror's own outline is disabled in its theme, so the frame carries the focus ring instead. */
+.code-editor:focus-within {
+	box-shadow: var(--focus-ring);
+}
+
+.code-editor {
+	overflow: hidden;
+	border: 1px solid var(--gray-alpha-400);
+	border-radius: var(--radius-control);
+}
+
+.code-editor .cm-editor {
+	min-height: 240px;
+	max-height: 60vh;
+}
+
+.code-editor .cm-scroller {
+	font: var(--copy-14-mono);
+}
+
+.chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-1);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.chip {
+	padding: 2px var(--space-2);
+	border-radius: var(--radius-control);
+	background: var(--gray-alpha-100);
+	font: var(--label-12);
+	font-family: var(--font-mono);
+	font-variant-numeric: tabular-nums;
+}
+
+.badge[data-state="error"] {
+	background: var(--red-100);
+	color: var(--red-900);
+}
+
+.callout {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	padding: var(--space-4);
+	border: 1px solid var(--red-400);
+	border-radius: var(--radius-control);
+	background: var(--red-100);
+	color: var(--red-900);
+	overflow-wrap: anywhere;
+}

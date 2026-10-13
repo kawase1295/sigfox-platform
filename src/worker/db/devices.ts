@@ -15,6 +15,7 @@ export const toDevice = (r: DeviceRow & { messageCount: number }): Device => ({
 	createdAt: r.createdAt.toISOString(),
 	lastMessageAt: r.lastMessageAt?.toISOString() ?? null,
 	messageCount: r.messageCount,
+	parserId: r.parserId,
 });
 
 export const toMessage = (r: MessageRow): Message => ({
@@ -26,6 +27,8 @@ export const toMessage = (r: MessageRow): Message => ({
 	receptions: r.receptions,
 	createdAt: r.createdAt.toISOString(),
 	updatedAt: r.updatedAt.toISOString(),
+	parsed: r.parsed,
+	parseError: r.parseError,
 });
 
 export async function listDevices(db: Db): Promise<Device[]> {
@@ -45,8 +48,12 @@ export async function getDevice(db: Db, id: string): Promise<Device | null> {
 	return row ? toDevice(row) : null;
 }
 
-export async function renameDevice(db: Db, id: string, name: string | null): Promise<Device | null> {
-	const row = await db.update(devices).set({ name }).where(eq(devices.id, id)).returning({ id: devices.id }).get();
+export async function updateDevice(
+	db: Db,
+	id: string,
+	changes: { name?: string | null; parserId?: string | null },
+): Promise<Device | null> {
+	const row = await db.update(devices).set(changes).where(eq(devices.id, id)).returning({ id: devices.id }).get();
 	return row ? getDevice(db, id) : null;
 }
 
