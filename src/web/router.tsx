@@ -2,7 +2,9 @@ import { createRootRoute, createRoute, createRouter, Link, Outlet, type RouterHi
 import { ApiStatus } from "./components/api-status";
 import { CurrentUser } from "./components/current-user";
 import { LanguageToggle } from "./components/language-toggle";
+import { RealtimeStatus } from "./components/realtime-status";
 import { useI18n } from "./i18n";
+import { useRealtime } from "./realtime/use-realtime";
 import { ApiTokensPage } from "./routes/api-tokens";
 import { CallbackSetupPage } from "./routes/callback-setup";
 import { DevicePage } from "./routes/device";
@@ -12,6 +14,7 @@ import { ParsersPage } from "./routes/parsers";
 
 function Shell() {
 	const { t } = useI18n();
+	const realtime = useRealtime();
 	return (
 		<>
 			<header className="header">
@@ -27,6 +30,7 @@ function Shell() {
 					</nav>
 				</div>
 				<div className="header-end">
+					<RealtimeStatus status={realtime} />
 					<CurrentUser />
 					<LanguageToggle />
 				</div>

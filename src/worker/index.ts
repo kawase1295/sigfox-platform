@@ -1,6 +1,8 @@
 import { createApp } from "./app";
 import { runRetention } from "./services/retention";
 
+export { RealtimeHub } from "./realtime/hub";
+
 const app = createApp();
 
 export default {
