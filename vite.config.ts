@@ -14,7 +14,13 @@ export default defineConfig(async () => {
 					plugins: [
 						cloudflareTest({
 							experimental: { newConfig: true },
-							miniflare: { bindings: { TEST_MIGRATIONS: await readD1Migrations("./migrations") } },
+							miniflare: {
+								bindings: {
+									TEST_MIGRATIONS: await readD1Migrations("./migrations"),
+									// Lets integration tests call the default export as the dev user; Access paths inject their own env.
+									AUTH_DEV_BYPASS: "1",
+								},
+							},
 						}),
 					],
 					test: { name: "worker", include: ["test/worker/**/*.test.ts"], setupFiles: ["./test/apply-migrations.ts"] },

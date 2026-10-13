@@ -5,6 +5,16 @@ import * as entrypoint from "./src/worker/index.ts" with { type: "cf-worker" };
 // Why not set it everywhere: a deploy would bind a database that does not exist in the deployer's account.
 export const LOCAL_D1_ID = "00000000-0000-4000-8000-000000000001";
 
+// Why mode-dependent: only declared secrets receive .dev.vars values locally, and the dev bypass must not even be
+// declared for production. Access settings are required there so a deploy cannot silently run unauthenticated.
+type AuthSecrets = Partial<
+	Record<"ACCESS_TEAM_DOMAIN" | "ACCESS_AUD" | "AUTH_DEV_BYPASS", ReturnType<typeof bindings.secret>>
+>;
+const authEnv = (mode: string | undefined): AuthSecrets =>
+	mode === "production"
+		? { ACCESS_TEAM_DOMAIN: bindings.secret(), ACCESS_AUD: bindings.secret() }
+		: { AUTH_DEV_BYPASS: bindings.secret() };
+
 export default defineConfig(({ mode }) => ({
 	worker: {
 		name: "sigfox-platform",
@@ -14,6 +24,7 @@ export default defineConfig(({ mode }) => ({
 		env: {
 			DB: bindings.d1({ name: "sigfox-platform-db", id: mode === "production" ? undefined : LOCAL_D1_ID }),
 			ASSETS: bindings.assets(),
+			...authEnv(mode),
 		},
 	},
 }));

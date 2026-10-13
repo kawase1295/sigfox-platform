@@ -135,3 +135,251 @@ p {
 .api-status[data-state="error"] .dot {
 	background: var(--red-700);
 }
+
+h2 {
+	margin: 0;
+}
+
+.heading-20 {
+	font: var(--heading-20);
+	letter-spacing: var(--heading-20-tracking);
+}
+
+.label-13 {
+	font: var(--label-13);
+}
+
+.mono {
+	font: var(--label-14-mono);
+	font-variant-numeric: tabular-nums;
+}
+
+.error {
+	color: var(--red-900);
+}
+
+.header-start,
+.header-end {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	min-width: 0;
+}
+
+.nav {
+	display: flex;
+	gap: var(--space-1);
+}
+
+.nav a {
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--radius-control);
+	color: var(--gray-900);
+	font: var(--label-14);
+	text-decoration: none;
+}
+
+.nav a:hover {
+	background: var(--gray-alpha-200);
+	color: var(--gray-1000);
+}
+
+.nav a[data-status="active"] {
+	color: var(--gray-1000);
+}
+
+@media (max-width: 600px) {
+	.header {
+		flex-wrap: wrap;
+	}
+
+	.header-end .label-13 {
+		display: none;
+	}
+}
+
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-6);
+}
+
+.inline-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--space-2);
+}
+
+.field {
+	display: flex;
+	flex: 1 1 240px;
+	flex-direction: column;
+	gap: var(--space-2);
+	max-width: 400px;
+	color: var(--gray-900);
+}
+
+.input {
+	height: 40px;
+	padding: 0 var(--space-3);
+	border: 1px solid var(--gray-alpha-400);
+	border-radius: var(--radius-control);
+	background: var(--background-100);
+	color: var(--gray-1000);
+	font: var(--copy-14);
+}
+
+.input:hover {
+	border-color: var(--gray-alpha-500);
+}
+
+.button {
+	height: 40px;
+	padding: 0 var(--space-3);
+	border: 1px solid transparent;
+	border-radius: var(--radius-control);
+	font: var(--button-14);
+	cursor: pointer;
+}
+
+.button.small {
+	height: 32px;
+	padding: 0 var(--space-2);
+}
+
+.button.primary {
+	background: var(--gray-1000);
+	color: var(--background-100);
+}
+
+.button.secondary {
+	border-color: var(--gray-alpha-400);
+	background: var(--background-100);
+	color: var(--gray-1000);
+}
+
+.button.secondary:hover {
+	background: var(--gray-100);
+}
+
+.button.tertiary {
+	background: transparent;
+	color: var(--gray-1000);
+}
+
+.button.tertiary:hover {
+	background: var(--gray-alpha-200);
+}
+
+.button.danger {
+	background: var(--red-800);
+	color: #ffffff;
+}
+
+.button:disabled {
+	border-color: transparent;
+	background: var(--gray-100);
+	color: var(--gray-700);
+	cursor: not-allowed;
+}
+
+.table-wrap {
+	overflow-x: auto;
+	border: 1px solid var(--gray-alpha-400);
+	border-radius: var(--radius-control);
+}
+
+.table {
+	width: 100%;
+	border-collapse: collapse;
+	font: var(--label-14);
+}
+
+.table th {
+	padding: var(--space-2) var(--space-4);
+	border-bottom: 1px solid var(--gray-alpha-400);
+	color: var(--gray-900);
+	font: var(--label-13);
+	text-align: left;
+	white-space: nowrap;
+}
+
+.table td {
+	padding: var(--space-3) var(--space-4);
+	border-bottom: 1px solid var(--gray-alpha-400);
+	white-space: nowrap;
+}
+
+.table tr:last-child td {
+	border-bottom: 0;
+}
+
+.table .actions {
+	text-align: right;
+}
+
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: 2px var(--space-2);
+	border-radius: var(--radius-pill);
+	font: var(--label-12);
+}
+
+.badge::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: var(--radius-pill);
+	background: currentColor;
+}
+
+.badge[data-state="active"] {
+	background: var(--green-100);
+	color: var(--green-900);
+}
+
+.badge[data-state="revoked"] {
+	background: var(--gray-100);
+	color: var(--gray-900);
+}
+
+.dialog {
+	width: min(480px, calc(100vw - 32px));
+	padding: var(--space-6);
+	border: 1px solid var(--gray-alpha-400);
+	border-radius: var(--radius-menu);
+	background: var(--background-100);
+	color: var(--gray-1000);
+	box-shadow: var(--shadow-modal);
+}
+
+.dialog[open] {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.dialog::backdrop {
+	background: rgba(0, 0, 0, 0.4);
+}
+
+.dialog-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: var(--space-2);
+}
+
+.secret {
+	display: block;
+	padding: var(--space-3);
+	border: 1px solid var(--gray-alpha-400);
+	border-radius: var(--radius-control);
+	background: var(--background-200);
+	font: var(--copy-14-mono);
+	overflow-wrap: anywhere;
+	user-select: all;
+}

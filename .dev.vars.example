@@ -1,0 +1,12 @@
+# Copy to .dev.vars for `npm run dev`. Only secrets declared in cloudflare.config.ts receive these values.
+
+# Local development only: "1" signs every UI/API request in as dev@example.com without Cloudflare Access.
+# Honoured only when no Access settings are present AND the request host is localhost/127.0.0.1/[::1];
+# otherwise the API fails closed. Production builds do not declare this variable at all.
+AUTH_DEV_BYPASS=1
+
+# Production (set as Worker secrets; the Deploy button asks for them):
+#   ACCESS_TEAM_DOMAIN  Cloudflare Access team domain, e.g. "acme.cloudflareaccess.com"
+#                       (Zero Trust > Settings > Team name and domain). JWT issuer is https://<team domain>,
+#                       signing keys come from https://<team domain>/cdn-cgi/access/certs.
+#   ACCESS_AUD          Application Audience (AUD) tag of the Access application protecting this Worker.
