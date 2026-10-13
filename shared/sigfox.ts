@@ -72,8 +72,17 @@ export const advancedCallbackSchema = z.object({
 	computedLocation: embeddedJson(computedLocationSchema.nullish()),
 });
 
+export const errorCallbackSchema = z.object({
+	device: frameFields.device,
+	time: frameFields.time,
+	info: z.string().trim().max(1000),
+	// Why free text: Sigfox has already retired one value (WARN); an unknown one must not drop the event.
+	severity: z.string().trim().min(1).max(32).toUpperCase(),
+});
+
 export type UplinkCallback = z.output<typeof uplinkCallbackSchema>;
 export type AdvancedCallback = z.output<typeof advancedCallbackSchema>;
+export type ErrorCallback = z.output<typeof errorCallbackSchema>;
 export type ComputedLocation = z.output<typeof computedLocationSchema>;
 
 export const invalidBodyResponseSchema = z.strictObject({
@@ -93,3 +102,7 @@ export const ADVANCED_BODY_TEMPLATE =
 	'{"device":"{device}","time":{time},"seqNumber":{seqNumber},"data":"{data}","lqi":"{lqi}","duplicates":{duplicates},"computedLocation":{computedLocation}}';
 
 export const ADVANCED_CALLBACK_PATH = "/api/callbacks/sigfox/advanced";
+
+export const ERROR_BODY_TEMPLATE = '{"device":"{device}","time":{time},"info":"{info}","severity":"{severity}"}';
+
+export const ERROR_CALLBACK_PATH = "/api/callbacks/sigfox/error";

@@ -38,3 +38,13 @@ export async function publishIngest(
 		console.error("realtime publish after ingest failed", error);
 	}
 }
+
+/** Publishes the device's current state, e.g. after an ERROR callback. Never rejects, like publishIngest. */
+export async function publishDevice(env: Pick<Env, "REALTIME">, db: Db, deviceId: string): Promise<void> {
+	try {
+		const device = await getDevice(db, deviceId);
+		if (device) await publish(env, { type: "device.upserted", device });
+	} catch (error) {
+		console.error("realtime publish of device failed", error);
+	}
+}

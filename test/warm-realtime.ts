@@ -13,5 +13,6 @@ await realtimeHub(env, "warm-up").broadcast({
 		lastMessageAt: null,
 		messageCount: 0,
 		parserId: null,
+		lastError: null,
 	},
 });

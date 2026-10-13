@@ -103,3 +103,24 @@ export const locations = sqliteTable(
 		index("locations_time_idx").on(t.time),
 	],
 );
+
+// Sigfox ERROR callbacks (communication loss). Kept apart from messages: they carry no frame and no seqNumber.
+export const deviceEvents = sqliteTable(
+	"device_events",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		deviceId: text("device_id")
+			.notNull()
+			.references(() => devices.id, { onDelete: "cascade" }),
+		// Epoch seconds as Sigfox sends them, like messages.time.
+		time: integer("time").notNull(),
+		severity: text("severity").notNull(),
+		info: text("info").notNull(),
+		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+	},
+	(t) => [
+		// Why: the Sigfox backend redelivers callbacks, and one keep-alive breach must stay one event.
+		uniqueIndex("device_events_device_time_unique").on(t.deviceId, t.time),
+		index("device_events_time_idx").on(t.time),
+	],
+);

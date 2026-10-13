@@ -1,7 +1,7 @@
 import { and, desc, eq, getTableColumns, lt, or, sql } from "drizzle-orm";
-import type { Device, Message } from "#shared/devices";
+import type { Device, DeviceError, Message } from "#shared/devices";
 import type { Db } from "./client";
-import { devices, messages } from "./schema";
+import { deviceEvents, devices, messages } from "./schema";
 
 export type DeviceRow = typeof devices.$inferSelect;
 export type MessageRow = typeof messages.$inferSelect;
@@ -9,13 +9,29 @@ export type MessageRow = typeof messages.$inferSelect;
 // Why the raw qualified name: drizzle renders ${devices.id} unqualified, which would bind to messages.id here.
 const messageCount = sql<number>`(select count(*) from ${messages} m where m.device_id = "devices"."id")`;
 
-export const toDevice = (r: DeviceRow & { messageCount: number }): Device => ({
+// Newest event by time, so redelivered or out-of-order callbacks cannot hide a later one. Time is epoch seconds.
+const lastError = sql<
+	string | null
+>`(select json_object('time', e.time, 'severity', e.severity, 'info', e.info) from ${deviceEvents} e where e.device_id = "devices"."id" order by e.time desc limit 1)`;
+
+type StoredError = { time: number; severity: string; info: string };
+
+const toDeviceError = (raw: string | null): DeviceError | null => {
+	if (raw === null) return null;
+	const e = JSON.parse(raw) as StoredError;
+	return { time: new Date(e.time * 1000).toISOString(), severity: e.severity, info: e.info };
+};
+
+const deviceColumns = { ...getTableColumns(devices), messageCount, lastError };
+
+export const toDevice = (r: DeviceRow & { messageCount: number; lastError: string | null }): Device => ({
 	id: r.id,
 	name: r.name,
 	createdAt: r.createdAt.toISOString(),
 	lastMessageAt: r.lastMessageAt?.toISOString() ?? null,
 	messageCount: r.messageCount,
 	parserId: r.parserId,
+	lastError: toDeviceError(r.lastError),
 });
 
 export const toMessage = (r: MessageRow): Message => ({
@@ -34,18 +50,14 @@ export const toMessage = (r: MessageRow): Message => ({
 
 export async function listDevices(db: Db): Promise<Device[]> {
 	const rows = await db
-		.select({ ...getTableColumns(devices), messageCount })
+		.select(deviceColumns)
 		.from(devices)
 		.orderBy(sql`${devices.lastMessageAt} desc nulls last`, devices.id);
 	return rows.map(toDevice);
 }
 
 export async function getDevice(db: Db, id: string): Promise<Device | null> {
-	const row = await db
-		.select({ ...getTableColumns(devices), messageCount })
-		.from(devices)
-		.where(eq(devices.id, id))
-		.get();
+	const row = await db.select(deviceColumns).from(devices).where(eq(devices.id, id)).get();
 	return row ? toDevice(row) : null;
 }
 

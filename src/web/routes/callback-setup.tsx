@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import {
 	ADVANCED_BODY_TEMPLATE,
 	ADVANCED_CALLBACK_PATH,
+	ERROR_BODY_TEMPLATE,
+	ERROR_CALLBACK_PATH,
 	UPLINK_BODY_TEMPLATE,
 	UPLINK_CALLBACK_PATH,
 } from "#shared/sigfox";
@@ -54,6 +56,12 @@ export function CallbackSetupPage() {
 				body={t("callback.advancedBody")}
 				path={ADVANCED_CALLBACK_PATH}
 				template={ADVANCED_BODY_TEMPLATE}
+			/>
+			<CallbackType
+				type="ERROR"
+				body={t("callback.errorBody")}
+				path={ERROR_CALLBACK_PATH}
+				template={ERROR_BODY_TEMPLATE}
 			/>
 		</section>
 	);
