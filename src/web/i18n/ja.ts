@@ -54,6 +54,8 @@ export const ja: Dictionary = {
 	"callback.duplicates":
 		"「Send duplicate」を有効にすると、メッセージを受信したすべての基地局が記録されます。重複分は 1 件のメッセージにまとめられます。",
 	"user.signedInAs": "ログイン中のユーザー",
+	"footer.source": "ソースコード",
+	"footer.license": "ライセンス:",
 	"tokens.heading": "API トークン",
 	"tokens.body":
 		"Sigfox のコールバックはこのトークンで認証します。Authorization ヘッダーに Bearer トークンとして指定してください。",

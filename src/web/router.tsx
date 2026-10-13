@@ -1,6 +1,7 @@
 import { createRootRoute, createRoute, createRouter, Link, Outlet, type RouterHistory } from "@tanstack/react-router";
 import { ApiStatus } from "./components/api-status";
 import { CurrentUser } from "./components/current-user";
+import { Footer } from "./components/footer";
 import { LanguageToggle } from "./components/language-toggle";
 import { RealtimeStatus } from "./components/realtime-status";
 import { useI18n } from "./i18n";
@@ -39,6 +40,7 @@ function Shell() {
 				<Outlet />
 				<ApiStatus />
 			</main>
+			<Footer />
 		</>
 	);
 }

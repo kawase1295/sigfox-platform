@@ -6,7 +6,7 @@ import sensitV3 from "./samples/sensit-v3.js?raw";
 import simplepack from "./samples/simplepack.js?raw";
 import td1205p from "./samples/td1205p-tracker.js?raw";
 
-// Copied unchanged from legacy/docs/parsers so existing users can paste their old parsers and expect the same output.
+// Copied unchanged from the original project's docs/parsers (iot-makers/sigfox-platform) so existing users can paste their old parsers and expect the same output.
 export const PARSER_SAMPLES: ParserSample[] = [
 	{ id: "connected-plant", name: "Connected plant", code: connectedPlant, examplePayload: "3c50" },
 	{ id: "hidnseek", name: "HidnSeek", code: hidnseek, examplePayload: "6b89434295621340e43ed042" },
