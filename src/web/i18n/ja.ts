@@ -43,7 +43,6 @@ export const ja: Dictionary = {
 	"callback.heading": "コールバック設定",
 	"callback.body":
 		"Sigfox バックエンドでデバイスタイプの Callbacks を開き、次の設定でカスタムコールバックを作成してください。",
-	"callback.type": "種類",
 	"callback.url": "URL",
 	"callback.copyUrl": "URL をコピー",
 	"callback.method": "HTTP メソッド",
@@ -133,4 +132,17 @@ export const ja: Dictionary = {
 	"parser.error.timeout": "時間制限超過",
 	"parser.error.memory": "メモリ制限超過",
 	"parser.error.invalid_output": "不正な出力",
+	"device.locations": "位置情報",
+	"device.locationsError": "位置情報を読み込めませんでした。ページを再読み込みしてください。",
+	"device.noLocations":
+		"位置情報はまだありません。lat と lng を返すパーサー、または DATA_ADVANCED コールバックから位置が記録されます。",
+	"map.latestLabel": "デバイスの最新位置の地図",
+	"map.trackLabel": "デバイスの軌跡の地図",
+	"map.loading": "地図を読み込み中…",
+	"map.error": "地図を読み込めませんでした。ページを再読み込みしてください。",
+	"map.source.gps": "GPS",
+	"map.source.sigfox": "Sigfox",
+	"callback.uplinkBody": "メッセージと、それを受信した基地局を記録します。",
+	"callback.advancedBody":
+		"通信品質、基地局ごとの受信回数、Sigfox による位置を追加します。Network metadata または Atlas オプションを契約していない場合は、ボディから duplicates または computedLocation を削除してください。",
 };

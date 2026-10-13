@@ -41,7 +41,6 @@ export const en = {
 	"callback.heading": "Callback setup",
 	"callback.body":
 		"In the Sigfox backend, open your device type, go to Callbacks and create a custom callback with these settings.",
-	"callback.type": "Type",
 	"callback.url": "URL",
 	"callback.copyUrl": "Copy URL",
 	"callback.method": "HTTP method",
@@ -130,6 +129,19 @@ export const en = {
 	"parser.error.timeout": "Time limit exceeded",
 	"parser.error.memory": "Memory limit exceeded",
 	"parser.error.invalid_output": "Invalid output",
+	"device.locations": "Locations",
+	"device.locationsError": "Locations could not be loaded. Reload the page to try again.",
+	"device.noLocations":
+		"No locations yet. Positions come from a parser that returns lat and lng values, or from the DATA_ADVANCED callback.",
+	"map.latestLabel": "Map of the latest device positions",
+	"map.trackLabel": "Map of the device track",
+	"map.loading": "Loading map…",
+	"map.error": "The map could not be loaded. Reload the page to try again.",
+	"map.source.gps": "GPS",
+	"map.source.sigfox": "Sigfox",
+	"callback.uplinkBody": "Stores each message with the base stations that heard it.",
+	"callback.advancedBody":
+		"Adds link quality, repetitions per station and the Sigfox location. Remove duplicates or computedLocation from the body if your contract lacks the Network metadata or Atlas option.",
 } as const;
 
 export type MessageKey = keyof typeof en;

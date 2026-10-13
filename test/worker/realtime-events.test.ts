@@ -22,6 +22,7 @@ const message: Message = {
 	updatedAt: "2026-10-01T00:10:00.000Z",
 	parsed: null,
 	parseError: null,
+	lqi: null,
 };
 
 describe("realtimeEventSchema", () => {
@@ -30,7 +31,16 @@ describe("realtimeEventSchema", () => {
 		{ type: "device.upserted", device },
 		{
 			type: "location.created",
-			location: { deviceId: "1A2B3C", time: "2026-10-01T00:10:00.000Z", lat: 35.68, lng: 139.76, source: "parser" },
+			location: {
+				id: 1,
+				deviceId: "1A2B3C",
+				messageId: 1,
+				time: "2026-10-01T00:10:00.000Z",
+				lat: 35.68,
+				lng: 139.76,
+				accuracy: null,
+				source: "gps",
+			},
 		},
 	])("accepts $type", (event) => {
 		expect(realtimeEventSchema.parse(JSON.parse(JSON.stringify(event)))).toEqual(event);
@@ -45,7 +55,16 @@ describe("realtimeEventSchema", () => {
 	});
 
 	it("rejects out-of-range coordinates", () => {
-		const location = { deviceId: "1A2B3C", time: "2026-10-01T00:10:00.000Z", lat: 91, lng: 0, source: "sigfox" };
+		const location = {
+			id: 1,
+			deviceId: "1A2B3C",
+			messageId: 1,
+			time: "2026-10-01T00:10:00.000Z",
+			lat: 91,
+			lng: 0,
+			accuracy: 1000,
+			source: "sigfox",
+		};
 		expect(realtimeEventSchema.safeParse({ type: "location.created", location }).success).toBe(false);
 	});
 });

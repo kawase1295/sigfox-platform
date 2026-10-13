@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Device, Message } from "#shared/devices";
-import { UPLINK_BODY_TEMPLATE } from "#shared/sigfox";
+import { ADVANCED_BODY_TEMPLATE, UPLINK_BODY_TEMPLATE } from "#shared/sigfox";
 import { renderApp } from "./helpers/render-app";
 
 const device = (over: Partial<Device> = {}): Device => ({
@@ -28,6 +28,7 @@ const message = (seqNumber: number): Message => ({
 	updatedAt: "2026-10-01T00:00:00.000Z",
 	parsed: null,
 	parseError: null,
+	lqi: null,
 });
 
 let devices: Device[];
@@ -97,6 +98,11 @@ describe("callback setup", () => {
 		expect(screen.getByText(UPLINK_BODY_TEMPLATE)).toBeTruthy();
 		expect(UPLINK_BODY_TEMPLATE).toBe(
 			'{"device":"{device}","time":{time},"seqNumber":{seqNumber},"data":"{data}","station":"{station}","rssi":{rssi},"snr":{snr}}',
+		);
+		expect(screen.getByText(`${location.origin}/api/callbacks/sigfox/advanced`)).toBeTruthy();
+		expect(screen.getByText(ADVANCED_BODY_TEMPLATE)).toBeTruthy();
+		expect(ADVANCED_BODY_TEMPLATE).toBe(
+			'{"device":"{device}","time":{time},"seqNumber":{seqNumber},"data":"{data}","lqi":"{lqi}","duplicates":{duplicates},"computedLocation":{computedLocation}}',
 		);
 		const main = screen.getByRole("main");
 		expect(within(main).getByRole("link", { name: "API tokens" }).getAttribute("href")).toBe("/settings/tokens");

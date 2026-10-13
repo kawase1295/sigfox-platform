@@ -1,6 +1,7 @@
 import { desc } from "drizzle-orm";
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
-import type { Reception } from "#shared/devices";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import type { Lqi, Reception } from "#shared/devices";
+import type { LocationSource } from "#shared/locations";
 import type { ParsedEntry, ParseError } from "#shared/parsers";
 
 // Instance-wide key/value settings; exists mainly so the migration pipeline has a first table.
@@ -56,7 +57,9 @@ export const messages = sqliteTable(
 		time: integer("time").notNull(),
 		seqNumber: integer("seq_number").notNull(),
 		data: text("data").notNull(),
+		// One entry per station; DATA/UPLINK and DATA_ADVANCED reports of the same station are merged into it.
 		receptions: text("receptions", { mode: "json" }).$type<Reception[]>().notNull(),
+		lqi: text("lqi").$type<Lqi>(),
 		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 		updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 		// Set together: parsed on success, parseError on failure, parsedAt either way (null = never parsed).
@@ -68,5 +71,35 @@ export const messages = sqliteTable(
 		// Why time in the key: seqNumber wraps around (12 bits), so it alone does not identify a frame.
 		uniqueIndex("messages_device_seq_time_unique").on(t.deviceId, t.seqNumber, t.time),
 		index("messages_device_time_idx").on(t.deviceId, desc(t.time), desc(t.id)),
+		// For the retention purge, which filters by time across all devices.
+		index("messages_time_idx").on(t.time),
+	],
+);
+
+export const locations = sqliteTable(
+	"locations",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		deviceId: text("device_id")
+			.notNull()
+			.references(() => devices.id, { onDelete: "cascade" }),
+		// Why not nullable with set null: every position comes from a frame, and one outliving its frame would
+		// survive retention with no way to trace it back. A future manual position can relax this.
+		messageId: integer("message_id")
+			.notNull()
+			.references(() => messages.id, { onDelete: "cascade" }),
+		// Epoch seconds, copied from the message so track and retention queries need no join.
+		time: integer("time").notNull(),
+		lat: real("lat").notNull(),
+		lng: real("lng").notNull(),
+		accuracy: real("accuracy"),
+		source: text("source").$type<LocationSource>().notNull(),
+		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+	},
+	(t) => [
+		// Why: redelivered callbacks and re-parses must not add the same position twice.
+		uniqueIndex("locations_message_source_unique").on(t.messageId, t.source),
+		index("locations_device_time_idx").on(t.deviceId, desc(t.time), desc(t.id)),
+		index("locations_time_idx").on(t.time),
 	],
 );

@@ -25,6 +25,7 @@ export const toMessage = (r: MessageRow): Message => ({
 	seqNumber: r.seqNumber,
 	data: r.data,
 	receptions: r.receptions,
+	lqi: r.lqi,
 	createdAt: r.createdAt.toISOString(),
 	updatedAt: r.updatedAt.toISOString(),
 	parsed: r.parsed,

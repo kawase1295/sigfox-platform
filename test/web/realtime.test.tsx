@@ -2,6 +2,7 @@ import { type InfiniteData, QueryClient } from "@tanstack/react-query";
 import { act, cleanup, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Device, DeviceList, Message, MessagePage } from "#shared/devices";
+import type { Location } from "#shared/locations";
 import type { RealtimeEvent } from "#shared/realtime";
 import { applyRealtimeEvent } from "../../src/web/realtime/apply";
 import { connectRealtime } from "../../src/web/realtime/connection";
@@ -29,6 +30,7 @@ const message = (id: number, over: Partial<Message> = {}): Message => ({
 	updatedAt: "2026-10-01T00:00:00.000Z",
 	parsed: null,
 	parseError: null,
+	lqi: null,
 	...over,
 });
 
@@ -113,6 +115,67 @@ describe("applyRealtimeEvent", () => {
 
 		const data = client.getQueryData<InfiniteData<MessagePage>>(messagesKey);
 		expect(data?.pages[0]?.messages.map((m) => m.id)).toEqual([5, 4, 3]);
+	});
+});
+
+describe("applyRealtimeEvent for locations", () => {
+	let client: QueryClient;
+	beforeEach(() => {
+		client = new QueryClient();
+	});
+
+	const location = (id: number, over: Partial<Location> = {}): Location => ({
+		id,
+		deviceId: "1A2B3C",
+		messageId: id,
+		time: new Date(Date.UTC(2026, 9, 1, 0, id)).toISOString(),
+		lat: 35,
+		lng: 139,
+		accuracy: null,
+		source: "gps",
+		...over,
+	});
+	const created = (l: Location): RealtimeEvent => ({ type: "location.created", location: l });
+	const latestKey = ["locations", "latest"];
+	const trackKey = ["devices", "1A2B3C", "locations"];
+
+	it("moves a device's latest position forward, never back", () => {
+		client.setQueryData<Location[]>(latestKey, [location(2), location(9, { deviceId: "OTHER" })]);
+
+		applyRealtimeEvent(client, created(location(3)));
+		applyRealtimeEvent(client, created(location(1)));
+		applyRealtimeEvent(client, created(location(4, { deviceId: "NEW" })));
+
+		const latest = client.getQueryData<Location[]>(latestKey) ?? [];
+		expect(latest.map((l) => [l.deviceId, l.id]).sort()).toEqual([
+			["1A2B3C", 3],
+			["NEW", 4],
+			["OTHER", 9],
+		]);
+	});
+
+	it("prefers a GPS fix over the Sigfox estimate of the same frame", () => {
+		client.setQueryData<Location[]>(latestKey, [location(1)]);
+		const sigfox = location(2, { time: location(1).time, source: "sigfox", accuracy: 1000 });
+
+		applyRealtimeEvent(client, created(sigfox));
+
+		expect(client.getQueryData<Location[]>(latestKey)?.map((l) => l.id)).toEqual([1]);
+	});
+
+	it("inserts into a cached track in time order, once", () => {
+		client.setQueryData<Location[]>(trackKey, [location(1), location(3)]);
+
+		applyRealtimeEvent(client, created(location(4)));
+		applyRealtimeEvent(client, created(location(2)));
+		applyRealtimeEvent(client, created(location(2)));
+
+		expect(client.getQueryData<Location[]>(trackKey)?.map((l) => l.id)).toEqual([1, 2, 3, 4]);
+	});
+
+	it("does not create location caches nobody asked for", () => {
+		applyRealtimeEvent(client, created(location(1)));
+		expect(client.getQueryCache().getAll()).toHaveLength(0);
 	});
 });
 

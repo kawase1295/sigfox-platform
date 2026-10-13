@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { applyRealtimeEvent, deviceKeys } from "./apply";
+import { applyRealtimeEvent, deviceKeys, locationKeys } from "./apply";
 import { connectRealtime, type RealtimeStatus } from "./connection";
 
 const realtimeUrl = () => `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/api/realtime`;
@@ -16,7 +16,10 @@ export function useRealtime(): RealtimeStatus {
 				url: realtimeUrl(),
 				onEvent: (event) => applyRealtimeEvent(client, event),
 				onStatus: setStatus,
-				onReconnect: () => client.invalidateQueries({ queryKey: deviceKeys.all }),
+				onReconnect: () => {
+					client.invalidateQueries({ queryKey: deviceKeys.all });
+					client.invalidateQueries({ queryKey: locationKeys.latest });
+				},
 			}),
 		[client],
 	);

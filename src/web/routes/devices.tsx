@@ -1,12 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { listDevices } from "../api/client";
+import { listDevices, listLatestLocations } from "../api/client";
+import { locationLines, MapPanel } from "../components/map-panel";
 import { formatDateTime } from "../format";
 import { useI18n } from "../i18n";
 
 export function DevicesPage() {
 	const { t, locale } = useI18n();
 	const devices = useQuery({ queryKey: ["devices"], queryFn: listDevices });
+	const latest = useQuery({ queryKey: ["locations", "latest"], queryFn: listLatestLocations });
+	const nameOf = (id: string) => devices.data?.find((d) => d.id === id)?.name ?? id;
 
 	return (
 		<section className="section">
@@ -14,6 +17,15 @@ export function DevicesPage() {
 				<h1 className="heading-32">{t("devices.heading")}</h1>
 				<p className="copy-14 secondary">{t("devices.body")}</p>
 			</header>
+
+			{latest.data && latest.data.length > 0 && (
+				<MapPanel
+					locations={latest.data}
+					mode="latest"
+					label={t("map.latestLabel")}
+					describe={(l) => ({ title: nameOf(l.deviceId), lines: locationLines(l, t, locale) })}
+				/>
+			)}
 
 			{devices.isPending ? (
 				<p className="copy-14 secondary">{t("common.loading")}</p>

@@ -6,7 +6,9 @@ import { type AccessKeySource, remoteAccessKeys } from "./auth/access";
 import { type AppEnv, accessAuth, apiTokenAuth } from "./auth/middleware";
 import { apiTokenRoutes } from "./routes/api-tokens";
 import { callbackRoutes } from "./routes/callbacks";
+import { configRoutes } from "./routes/config";
 import { deviceRoutes } from "./routes/devices";
+import { locationRoutes } from "./routes/locations";
 import { parserRoutes } from "./routes/parsers";
 import { realtimeRoutes } from "./routes/realtime";
 
@@ -22,7 +24,9 @@ export function createApp({ accessKeys = remoteAccessKeys }: AppDeps = {}) {
 	app.get("/health", (c) => c.json({ status: "ok" } satisfies HealthResponse));
 	app.get("/me", (c) => c.json({ email: c.var.user.email } satisfies MeResponse));
 	app.route("/tokens", apiTokenRoutes);
+	app.route("/config", configRoutes);
 	app.route("/devices", deviceRoutes);
+	app.route("/locations", locationRoutes);
 	app.route("/parsers", parserRoutes);
 	app.route("/callbacks", callbackRoutes);
 	app.route("/realtime", realtimeRoutes);

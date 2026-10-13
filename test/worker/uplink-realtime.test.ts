@@ -21,10 +21,10 @@ afterEach(() => socket.close());
 
 // Why app.request with our own context: waiting on waitUntil makes "nothing was published" decidable.
 const app = createApp();
-async function uplink(body: unknown, bindings: Env = env) {
+async function uplink(body: unknown, bindings: Env = env, type = "uplink") {
 	const ctx = createExecutionContext();
 	const init = json("POST", body, { authorization: bearer });
-	const res = await app.request("http://localhost/api/callbacks/sigfox/uplink", init, bindings, ctx);
+	const res = await app.request(`http://localhost/api/callbacks/sigfox/${type}`, init, bindings, ctx);
 	await waitOnExecutionContext(ctx);
 	return res;
 }
@@ -40,8 +40,16 @@ const callback = (over: Record<string, unknown> = {}) => ({
 	...over,
 });
 
-const aboutDevice = (e: RealtimeEvent, id: string) =>
-	e.type === "message.upserted" ? e.deviceId === id : e.type === "device.upserted" ? e.device.id === id : false;
+const aboutDevice = (e: RealtimeEvent, id: string) => {
+	switch (e.type) {
+		case "message.upserted":
+			return e.deviceId === id;
+		case "device.upserted":
+			return e.device.id === id;
+		case "location.created":
+			return e.location.deviceId === id;
+	}
+};
 
 /**
  * Events about `deviceId` received before a fresh sentinel broadcast, i.e. exactly what earlier
@@ -99,6 +107,21 @@ describe("uplink callback realtime events", () => {
 
 		const [event] = (await drain(body.device)).filter((e) => e.type === "message.upserted");
 		expect(event).toMatchObject({ message: { seqNumber: 2, parsed: [{ key: "b0", value: 100 }], parseError: null } });
+	});
+
+	it("publishes the Sigfox location after the message for a DATA_ADVANCED callback, once", async () => {
+		const { station: _, rssi: __, snr: ___, ...frame } = callback();
+		const body = { ...frame, computedLocation: { lat: 35, lng: 139, radius: 1200, source: 2, status: 1 } };
+		await uplink(body, env, "advanced");
+
+		expect(await drain(body.device)).toMatchObject([
+			{ type: "device.upserted" },
+			{ type: "message.upserted", message: { receptions: [] } },
+			{ type: "location.created", location: { deviceId: body.device, lat: 35, accuracy: 1200, source: "sigfox" } },
+		]);
+
+		await uplink(body, env, "advanced");
+		expect(await drain(body.device)).toEqual([]);
 	});
 
 	it("publishes nothing for an exact redelivery", async () => {
