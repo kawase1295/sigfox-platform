@@ -18,12 +18,16 @@ export type SandboxLimits = {
 	 * so a wall-clock deadline alone would never fire there.
 	 */
 	interruptBudget: number;
-	/** Wall-clock backstop, effective where the clock does advance (local dev, tests). */
+	/**
+	 * Wall-clock backstop, effective where the clock does advance (local dev, tests).
+	 * Why not tighter: under CPU contention ordinary parsers exceeded 50 ms of wall time and failed as timeouts;
+	 * the interrupt budget already stops runaway code.
+	 */
 	deadlineMs: number;
 };
 
 // ~100 interrupts is ~1M operations, about 45 ms on a laptop; real parsers need well under 1% of that.
-export const DEFAULT_LIMITS: SandboxLimits = { memoryBytes: 8 * 1024 * 1024, interruptBudget: 100, deadlineMs: 50 };
+export const DEFAULT_LIMITS: SandboxLimits = { memoryBytes: 8 * 1024 * 1024, interruptBudget: 100, deadlineMs: 1000 };
 
 export type RunParserInput = {
 	code: string;
