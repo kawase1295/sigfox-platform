@@ -1,7 +1,8 @@
 # Agent notes
 
 Cloudflare-native rewrite of Sigfox Platform: one Worker serves a Hono API (`/api/*`) and a React SPA.
-The old stack lives in `legacy/` for reference only; do not modify it.
+The 2018 stack (LoopBack + Angular + MongoDB) was removed before the public release; see the upstream repository
+(iot-makers/sigfox-platform) or this repo's history before #12 if you need it. Its parser samples live in `src/worker/parsers/samples`.
 
 ## Layout
 - `src/worker/` Hono app and D1 access (drizzle schema in `src/worker/db/schema.ts`)

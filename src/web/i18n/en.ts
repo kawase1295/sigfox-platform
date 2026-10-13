@@ -52,6 +52,8 @@ export const en = {
 	"callback.duplicates":
 		"Enable “Send duplicate” to record every base station that heard a message. Duplicates are merged into one message.",
 	"user.signedInAs": "Signed in as",
+	"footer.source": "Source code",
+	"footer.license": "Licensed under",
 	"tokens.heading": "API tokens",
 	"tokens.body":
 		"Sigfox callbacks authenticate with these tokens. Send one as a Bearer token in the Authorization header.",

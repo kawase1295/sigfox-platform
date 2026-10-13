@@ -1,0 +1,16 @@
+Sigfox Platform (Cloudflare edition)
+https://github.com/kawase1295/sigfox-platform
+
+This program is a modified version of Sigfox Platform
+(https://github.com/iot-makers/sigfox-platform),
+Copyright (C) 2018 Antoine de Chassey & Louis Moreau,
+licensed under the GNU Affero General Public License version 3.
+
+It was substantially rewritten in 2026 as a Cloudflare-native application.
+The original LoopBack/Angular/MongoDB code has been removed; the parser samples in
+src/worker/parsers/samples are copied unchanged from the original project.
+The modifications are licensed under the GNU Affero General Public License,
+version 3 only (AGPL-3.0-only). See LICENSE for the full text.
+
+Sigfox is a trademark of its owner (UnaBiz). This project is independent and is
+not affiliated with, sponsored by or endorsed by UnaBiz or Sigfox.

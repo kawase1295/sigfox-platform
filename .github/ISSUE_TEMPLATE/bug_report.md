@@ -1,18 +1,19 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Something in the dashboard, API or callback ingest does not work as expected
 
 ---
 
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**To reproduce**
 1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+2. Click on '...'
+3. See error
+
+For callback problems, include the callback type (DATA/UPLINK or DATA_ADVANCED), the body template you configured
+and the HTTP status the Sigfox backend reported. Remove API tokens and device IDs you do not want to share.
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
@@ -20,16 +21,13 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Environment**
+ - Commit or version you deployed: [e.g. `abc1234`]
+ - Workers plan: [Free / Paid]
+ - Browser and OS: [e.g. Chrome 140 on macOS]
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+**Logs**
+Relevant lines from `npx wrangler tail` or the Workers dashboard logs, if any.
 
 **Additional context**
 Add any other context about the problem here.

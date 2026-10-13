@@ -1,104 +1,158 @@
 # Sigfox Platform
 
-<a href="https://www.buymeacoffee.com/antoine" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+A self-hosted dashboard for Sigfox devices that runs entirely on your own Cloudflare account.
 
-![Gitlab pipeline status (branch)](https://img.shields.io/gitlab/pipeline/AntoinedeChassey/sigfox-platform/master.svg?label=build%20%28master%29)
-![Gitlab pipeline status (branch)](https://img.shields.io/gitlab/pipeline/AntoinedeChassey/sigfox-platform/staging.svg?label=build%20%28staging%29)
-![GitHub last commit (branch)](https://img.shields.io/github/last-commit/IoT-Makers/sigfox-platform/dev.svg?label=last%20commit%20%28dev%29)
-[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors)
-![GitHub](https://img.shields.io/github/license/IoT-Makers/sigfox-platform.svg)
+- **Callback ingest**: the Sigfox backend posts DATA/UPLINK and DATA_ADVANCED callbacks to your Worker. Devices register themselves on their first message; redelivered or out-of-order frames are merged, not duplicated.
+- **Parsers**: decode payloads with your own JavaScript, run in a QuickJS sandbox for every message. Samples for common devices are included.
+- **Map**: GPS positions from parser output and Sigfox Atlas locations from DATA_ADVANCED, on MapLibre with OpenFreeMap tiles (no API key).
+- **Realtime**: new messages, devices and locations appear without reloading (Durable Object WebSockets).
+- **Retention**: a daily Cron deletes messages older than `RETENTION_DAYS`.
+- **Access control**: the dashboard sits behind Cloudflare Access; callbacks use per-instance API tokens.
 
-**Disclaimer: This project is no longer developed, use it at your own risk!**
+One Worker serves a Hono API (`/api/*`) and a React SPA, with D1 for storage. English and Japanese UI.
 
-## About this project
-This is a cloud platform to manage Sigfox devices and visualize messages.
-![overview](legacy/docs/img/overview.png)
+> **Trademark notice.** Sigfox is a trademark of its owner (UnaBiz). This project is independent and is not affiliated with, sponsored by or endorsed by UnaBiz or Sigfox. The name is used only to describe what the software works with.
 
-## [Try it](https://try.iotagency.sigfox.com)
-You can deploy it yourself, but we encourage you to try it out [here](https://try.iotagency.sigfox.com).
+## Deploy
 
-## Features  
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/kawase1295/sigfox-platform)
 
-**Create customizable dashboards**
+The button copies this repository into your GitHub or GitLab account, creates the D1 database, and builds and deploys the Worker with Workers Builds. Pushes to your copy redeploy it.
 
-*charts*
-![dashboard_temp_hum](legacy/docs/img/dashboard_temp_hum.png)
+It asks for two required secrets, `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD`. Set up Cloudflare Access as described below to get them. If you do not have them yet, enter any placeholder: the Worker fails closed (every dashboard request is rejected) until the real values are set under **Workers & Pages → your Worker → Settings → Variables and Secrets**.
 
-*maps*
-![tracking](legacy/docs/img/dashboard_tracking.png)
+## Cloudflare Access
 
-**Review raw & decoded data in realtime**
-![message](legacy/docs/img/message.png)
+Every `/api/*` request except callbacks and the health check must carry a Cloudflare Access JWT, which the Worker verifies against your team domain and the application's audience tag. Without both secrets the API refuses all requests.
 
-**Create and share parsers**
-![parser](legacy/docs/img/parser.png)
+You need two Access applications for the Worker's hostname (for example `sigfox-platform.<your-subdomain>.workers.dev`, or a custom domain): one that protects everything, and a more specific one that lets the Sigfox backend through. Access applies the most specific matching path, so the second one takes precedence for its paths only.
 
-**Connect to other services with alerts**
-![alert](legacy/docs/img/alert.png)
+1. **Protect the dashboard.** In [Cloudflare One](https://one.dash.cloudflare.com/), go to **Access → Applications → Add an application → Self-hosted**.
+   - Destination: the Worker's hostname, path left empty (the whole hostname).
+   - Policy: action **Allow**, with the people who may use the dashboard (for example, emails ending in your domain).
+   - Save, then open the application. Its **Application Audience (AUD) Tag** is `ACCESS_AUD`.
+   - Your team domain, `<team-name>.cloudflareaccess.com`, is shown under **Settings** (team name and domain). That is `ACCESS_TEAM_DOMAIN`.
 
-**Manage devices, share with others in organization**
-![device](legacy/docs/img/device.png)
+   For a `workers.dev` hostname you can instead turn on **Cloudflare Access** under the Worker's **Settings → Domains & Routes**; it creates this application for you and shows the AUD tag.
 
-## Technologies
+2. **Let callbacks through.** Add a second **Self-hosted** application for the same hostname with two destinations:
+   - path `api/callbacks/*`
+   - path `api/health`
 
-### Application
- * Backend: [Loopback 3+](https://loopback.io/)
- * Frontend: [Angular 6+](https://angular.io/)
- * Real-time: [Primus](https://github.com/primus/primus)
- * Database: [MongoDB](https://www.mongodb.com/en)
- * Pub-sub & queuing: [RabbitMQ](https://www.rabbitmq.com/)
- 
- ### Deployment
- * Reverse proxy: [Traefik](https://traefik.io/) => a nice talk @devoxx to understand Traefik [here](https://www.youtube.com/watch?v=AqiGcLsVMeI)
- * Containerization: [Docker](https://www.docker.com/)
- * Orchestrator: [Docker Swarm](https://docs.docker.com/engine/swarm/)
- * Environment management UI: [Portainer](https://portainer.io/)
- * DB backups (private cloud storage): [Minio](https://www.minio.io/)
+   Give it one policy with action **Bypass** and include **Everyone**. Sigfox cannot sign in to Access, so these paths must not be gated by it. The Worker still requires an API token on `/api/callbacks/*` and checks the Access JWT on every other `/api/*` path, so a bypass that is broader than intended does not open the rest of the API.
 
- ### Monitoring
-* Metrics database: [Prometheus](https://prometheus.io/)
-* Visualize metrics: [Grafana](https://grafana.com/)
-* Host metrics collector: [Node-exporter](https://github.com/prometheus/node_exporter)
-* Containers metrics collector: [cAdvisor](https://github.com/google/cadvisor/)
-* Docker daemon metrics collector: [dockerd-exporter](https://github.com/stefanprodan/dockerd-exporter)
-* Alerts dispatcher: [Alertmanager](https://github.com/prometheus/alertmanager)
-* Alert manager dashboard: [Unsee](https://github.com/google/cadvisor/)
- 
-## Development
+3. Put both values into the Worker's secrets (the Deploy form, or **Settings → Variables and Secrets**). The team domain may be given with or without `https://`.
 
-### Requirements
+Each user is identified by the email in their Access token. Service tokens are not accepted for the dashboard.
 
-### API (To Be Updated, below is an old version)
+## Connect the Sigfox backend
 
-Below is the functional/sequential diagram representing the message journey.
+### 1. Create an API token
 
-![message_journey](legacy/docs/img/message-journey.png)
+Open the dashboard and go to **API tokens**. Create a token (for example "Sigfox backend") and copy it right away; it is shown only once and only its hash is stored. Revoke it there if it leaks.
 
-### Frontend
+### 2. Add the callbacks
 
-#### Color code
+In the [Sigfox backend](https://backend.sigfox.com/), open your device type, go to **Callbacks → New → Custom callback**, and use these settings. The dashboard's **Callback setup** page shows the same values with your hostname filled in and copy buttons.
 
-| GPS | Sigfox | WiFi | BLE |
-| :-------: | :-------: | :-------:	| :-------: |
-| ![#9B7A48](https://placehold.it/15/9B7A48/000000?text=+) `#9B7A48` | ![#792FAA](https://placehold.it/15/792FAA/000000?text=+) `#792FAA` | ![#2F2A30](https://placehold.it/15/2f2A30/000000?text=+) `#2F2A30` | ![#3C58CE](https://placehold.it/15/3C58CE/000000?text=+) `#3C58CE` |
+| Setting | Value |
+|---|---|
+| Channel | URL |
+| HTTP method | POST |
+| Content type | `application/json` |
+| Header | `Authorization` = `Bearer <token>` |
 
-## Gurus
+**DATA / UPLINK**: stores each message with the base stations that heard it. Enable **Send duplicate** to record every station; duplicates are merged into one message.
 
-### Linking a Sigfox device to the platform
+- URL: `https://<your-hostname>/api/callbacks/sigfox/uplink`
+- Body:
 
-Once the application is deployed, head over to the 'connectors'. You will need to create a developer access token in order to secure the API calls. You can then copy & paste the callback information you need in the device type new callback onto the [Sigfox Backend](https://backend.sigfox.com/).
+```text
+{"device":"{device}","time":{time},"seqNumber":{seqNumber},"data":"{data}","station":"{station}","rssi":{rssi},"snr":{snr}}
+```
 
-### Adding a custom parser
+**DATA / ADVANCED**: adds link quality, repetitions per station and the Sigfox (Atlas) location.
 
-A short wiki can be found [here](https://github.com/IoT-Makers/sigfox-platform/wiki/Adding-a-custom-parser).
+- URL: `https://<your-hostname>/api/callbacks/sigfox/advanced`
+- Body:
 
-## Roadmap
+```text
+{"device":"{device}","time":{time},"seqNumber":{seqNumber},"data":"{data}","lqi":"{lqi}","duplicates":{duplicates},"computedLocation":{computedLocation}}
+```
 
-## Author & co-author
+`{duplicates}` and `{computedLocation}` are inserted unquoted because Sigfox fills them with JSON. Remove them from the body if your contract lacks the Network metadata or Atlas option.
+
+You can use either callback or both; a frame received through both is stored once (keyed by device, sequence number and time). A successful callback returns `204`. A body that does not match returns `400` with the offending fields, and a missing or revoked token returns `401`.
+
+BIDIR, SERVICE/ACKNOWLEDGE and ERROR callbacks are not supported yet.
+
+## Parsers
+
+A parser is the body of a JavaScript function. It receives:
+
+- `payload`: the frame as lowercase hex (0 to 12 bytes)
+- `lastParsedPayload`: the previous message's output for the same device, or `[]`
+
+and returns an array of `{ key, value, type, unit }`:
+
+```js
+const temperature = parseInt(payload.slice(0, 4), 16) / 100;
+return [{ key: "temperature", value: temperature, type: "number", unit: "°C" }];
+```
+
+- `value` is a string, number, boolean or `null`; at most 100 entries.
+- Numeric `lat` and `lng` keys (plus optional `accuracy` in metres) put the message on the map as a GPS position.
+- Each run has a fresh sandbox with an 8 MB heap and an operation budget; no network, no timers. `console.*` is accepted and ignored.
+
+Create parsers under **Parsers**, test them against a payload in the editor, and assign one to a device on the device page; it applies to messages received from then on. **Create from sample** starts from the bundled parsers in [`src/worker/parsers/samples`](src/worker/parsers/samples) (Sens'it v2/v3, HidnSeek, Simplepack, TD1205P tracker, Connected plant). Parsers written for the original Sigfox Platform keep working.
+
+## Configuration
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `RETENTION_DAYS` | `365` | Days of messages to keep. `0` keeps everything. Devices are never deleted. |
+| `MAP_STYLE_URL` | `https://tiles.openfreemap.org/styles/liberty` | Any MapLibre style JSON URL. |
+
+Change them in [`cloudflare.config.ts`](cloudflare.config.ts), run `npm run gen:wrangler`, and commit both files to your copy of the repository. Values edited in the Cloudflare dashboard are overwritten by the next deploy, because every deploy sends the values from `wrangler.jsonc`. Wrangler's `keep_vars` does not help here: it only keeps dashboard variables that the config does not define, and these two are defined so a fresh deploy works without setup.
+
+## Workers plan
+
+The Free plan works for small fleets. Its limit that matters is CPU time: 10 ms per request.
+
+- A callback stores the frame, runs the device's parser and notifies browsers. With the bundled sample parsers a parse takes about 2 to 3 ms (measured locally as wall time, which overstates CPU time).
+- The first request on a new isolate also instantiates the QuickJS WebAssembly module, which took about 70 ms of wall time locally. Cloudflare tolerates occasional overruns, but this is the part most likely to fail on Free.
+- A parser that loops heavily can use up to its operation budget (roughly 1 million operations, tens of milliseconds) before it is stopped, well past 10 ms.
+
+If you write parsers that do real computation, or callbacks fail with exceeded CPU limits in the Worker's logs, use **Workers Paid**, where the default CPU limit is 30 seconds. Free plan request and D1 quotas are also worth checking against your message volume.
+
+## Local development
+
+See [AGENTS.md](AGENTS.md) for the layout, commands and gotchas. In short:
+
+```sh
+npm install && npm rebuild workerd esbuild --ignore-scripts=false
+cp .dev.vars.example .dev.vars   # AUTH_DEV_BYPASS=1, accepted on localhost only
+npm run db:migrate:local
+npm run dev
+```
+
+`scripts/check` runs everything CI runs (Biome, type check, tests, `wrangler.jsonc` drift).
+
+## License
+
+This project is a fork of [iot-makers/sigfox-platform](https://github.com/iot-makers/sigfox-platform), Copyright (C) 2018 Antoine de Chassey & Louis Moreau, licensed under the GNU Affero General Public License v3.0. It was substantially rewritten in 2026 as a Cloudflare-native application; the original LoopBack/Angular/MongoDB code has been removed, and the bundled parser samples come from the original project.
+
+The modifications are licensed under AGPL-3.0-only. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+Under AGPL section 13, if you run a modified version for users over a network, you must offer them its source. The dashboard footer links to this repository; point it at your own repository (`SOURCE_URL` in [`src/web/components/footer.tsx`](src/web/components/footer.tsx)) if you deploy changes.
+
+## Original authors and contributors
+
+The original Sigfox Platform was created by:
 
 <table><tr><td align="center"><a href="https://twitter.com/adechassey"><img src="https://avatars3.githubusercontent.com/u/12235204?v=4" width="100px;" alt="Antoine de Chassey"/><br /><sub><b>Antoine de Chassey</b></sub></a><br /><a href="https://github.com/IoT-Makers/sigfox-platform/commits?author=AntoinedeChassey" title="Code">💻</a></td><td align="center"><a href="http://louismoreau.eu"><img src="https://avatars1.githubusercontent.com/u/4725870?v=4" width="100px;" alt="Louis MOREAU"/><br /><sub><b>Louis MOREAU</b></sub></a><br /><a href="https://github.com/IoT-Makers/sigfox-platform/commits?author=luisomoreau" title="Code">💻</a></td></tr></table>
 
-## Contributors
+Contributors to the original project:
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -119,10 +173,3 @@ A short wiki can be found [here](https://github.com/IoT-Makers/sigfox-platform/w
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-
-Feel free to submit a Pull Request and don't forget to add you name and your useful links.
-
-## Support this project
-Hey dude! Help me out for a couple of :beers: or :coffee:!
-
-<a href="https://www.buymeacoffee.com/antoine" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>

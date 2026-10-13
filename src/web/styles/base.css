@@ -559,3 +559,23 @@ select.input {
 	color: #171717;
 	font: var(--copy-13);
 }
+
+.footer {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-4);
+	max-width: var(--content-width);
+	margin: 0 auto;
+	padding: var(--space-6) var(--space-4) var(--space-10);
+	border-top: 1px solid var(--gray-alpha-400);
+}
+
+@media (min-width: 601px) {
+	.footer {
+		padding-inline: var(--space-6);
+	}
+}
+
+.footer .link {
+	text-decoration: underline;
+}
