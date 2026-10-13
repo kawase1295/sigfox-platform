@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Single entry point for pre-merge checks, shared by local runs and GitHub Actions.
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+YARN=(npx -y yarn@1.22.22)
+
+echo "==> backend: install"
+# --ignore-scripts: lint needs no native builds, and legacy postinstall hooks break on current Node.
+(cd backend && "${YARN[@]}" install --frozen-lockfile --ignore-scripts --silent)
+
+echo "==> backend: lint"
+(cd backend && "${YARN[@]}" lint)
+
+# Why not jest: backend tests are integration tests that require the API server (:3000) and MongoDB.
+# Why not frontend: Angular 11 toolchain is slated for replacement during modernization.
