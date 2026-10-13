@@ -10,3 +10,7 @@ AUTH_DEV_BYPASS=1
 #                       (Zero Trust > Settings > Team name and domain). JWT issuer is https://<team domain>,
 #                       signing keys come from https://<team domain>/cdn-cgi/access/certs.
 #   ACCESS_AUD          Application Audience (AUD) tag of the Access application protecting this Worker.
+
+# Not read from this file: RETENTION_DAYS is a plain var (default "365", "0" keeps messages forever) declared in
+# cloudflare.config.ts, and only declared secrets receive .dev.vars values. Change it there for local runs, or in
+# the Deploy button / dashboard (Settings > Variables) for a deployed Worker. A non-integer value skips the purge.

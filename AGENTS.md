@@ -27,3 +27,9 @@ The old stack lives in `legacy/` for reference only; do not modify it.
 - `/api/*` requires a Cloudflare Access JWT (`Cf-Access-Jwt-Assertion`), verified against `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD`. `/api/health` is public; `/api/callbacks/*` takes `Authorization: Bearer sfp_…` API tokens instead.
 - Local dev: copy `.dev.vars.example` to `.dev.vars` (`AUTH_DEV_BYPASS=1`; `cloudflare.config.ts` declares it only outside production, and only declared secrets get `.dev.vars` values). The bypass works only with no Access vars set and a loopback host; anything else fails closed (see `src/worker/auth/access.ts`).
 - Tests inject a local JWKS through `createApp({ accessKeys })`; never fetch real Access certs in tests.
+
+## Retention
+- Daily Cron (`0 3 * * *` UTC) runs `src/worker/services/retention.ts`: deletes messages with `time < now - RETENTION_DAYS` (a row exactly at the cutoff is kept), in 1000-row batches, at most 40 statements per run; a backlog drains over several runs. Devices are never deleted.
+- `RETENTION_DAYS` is a plain var in `cloudflare.config.ts` (default `"365"`, `"0"` = keep forever, invalid = log and skip). Not a secret, so `.dev.vars` does not override it.
+- New time-series tables (e.g. locations) join the purge by adding an entry to `PURGE_TARGETS`.
+- Trigger locally: `cf dev`, then `POST /cdn-cgi/local/explorer/api/local/scheduled`; in tests call `worker.scheduled(createScheduledController(...), env)`.
