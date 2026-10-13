@@ -58,12 +58,15 @@ describe("RealtimeHub", () => {
 });
 
 describe("GET /api/realtime", () => {
+	// The api() helper requests http://localhost, so this is what a browser on the app would send.
+	const sameOrigin = { ...upgradeHeaders, Origin: "http://localhost" };
+
 	it("requires Cloudflare Access like the rest of the API", async () => {
 		const issuer = await createAccessIssuer();
 		const app = createApp({ accessKeys: () => issuer.keys });
 		const res = await app.request(
 			"/api/realtime",
-			{ headers: upgradeHeaders },
+			{ headers: sameOrigin },
 			{ ...env, AUTH_DEV_BYPASS: undefined, ...accessEnv },
 		);
 		expect(res.status).toBe(401);
@@ -73,8 +76,20 @@ describe("GET /api/realtime", () => {
 		expect((await api("/realtime")).status).toBe(426);
 	});
 
-	it("upgrades an authenticated request and relays broadcasts of the server-chosen scope", async () => {
-		const socket = await open(api("/realtime?scope=org:other", { headers: upgradeHeaders }));
+	it("rejects an upgrade without an Origin header", async () => {
+		const res = await api("/realtime", { headers: upgradeHeaders });
+		expect(res.status).toBe(403);
+		expect(await res.json()).toEqual({ error: "forbidden_origin" });
+	});
+
+	it("rejects an upgrade from another site", async () => {
+		const res = await api("/realtime", { headers: { ...upgradeHeaders, Origin: "https://evil.example" } });
+		expect(res.status).toBe(403);
+		expect(await res.json()).toEqual({ error: "forbidden_origin" });
+	});
+
+	it("upgrades a same-origin request and relays broadcasts of the server-chosen scope", async () => {
+		const socket = await open(api("/realtime?scope=org:other", { headers: sameOrigin }));
 		const event = deviceEvent();
 
 		await realtimeHub(env).broadcast(event);
