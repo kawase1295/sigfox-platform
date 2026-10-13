@@ -2,7 +2,8 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { Link } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import type { Message } from "#shared/devices";
-import { getDevice, listMessages, updateDevice } from "../api/client";
+import { getDevice, listMessages, listParsers, updateDevice } from "../api/client";
+import { ParsedValues } from "../components/parsed-values";
 import { formatDateTime } from "../format";
 import { useI18n } from "../i18n";
 
@@ -35,6 +36,7 @@ export function DevicePage({ deviceId }: { deviceId: string }) {
 				</p>
 			)}
 			{device.data && <RenameForm deviceId={deviceId} name={device.data.name} />}
+			{device.data && <ParserSelect deviceId={deviceId} parserId={device.data.parserId} />}
 
 			<h2 className="heading-20">{t("device.messages")}</h2>
 			{messages.isPending ? (
@@ -56,6 +58,7 @@ export function DevicePage({ deviceId }: { deviceId: string }) {
 									<th>{t("device.data")}</th>
 									<th className="numeric">{t("device.stations")}</th>
 									<th className="numeric">{t("device.bestRssi")}</th>
+									<th>{t("device.parsed")}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -66,6 +69,9 @@ export function DevicePage({ deviceId }: { deviceId: string }) {
 										<td className="mono">{m.data || "—"}</td>
 										<td className="mono numeric">{m.receptions.length}</td>
 										<td className="mono numeric">{bestRssi(m)?.toFixed(1) ?? "—"}</td>
+										<td>
+											<ParsedValues message={m} />
+										</td>
 									</tr>
 								))}
 							</tbody>
@@ -124,5 +130,45 @@ function RenameForm({ deviceId, name }: { deviceId: string; name: string | null 
 				</p>
 			)}
 		</form>
+	);
+}
+
+function ParserSelect({ deviceId, parserId }: { deviceId: string; parserId: string | null }) {
+	const { t } = useI18n();
+	const queryClient = useQueryClient();
+	const parsers = useQuery({ queryKey: ["parsers"], queryFn: listParsers });
+	const assign = useMutation({
+		mutationFn: (next: string | null) => updateDevice(deviceId, { parserId: next }),
+		onSuccess: (updated) => {
+			queryClient.setQueryData(["devices", deviceId], updated);
+			return queryClient.invalidateQueries({ queryKey: ["parsers"], exact: true });
+		},
+	});
+
+	return (
+		<div className="inline-form">
+			<label className="field">
+				<span className="label-13">{t("device.parser")}</span>
+				<select
+					className="input"
+					value={parserId ?? ""}
+					disabled={assign.isPending || !parsers.data}
+					onChange={(e) => assign.mutate(e.target.value || null)}
+				>
+					<option value="">{t("device.noParser")}</option>
+					{parsers.data?.map((p) => (
+						<option key={p.id} value={p.id}>
+							{p.name}
+						</option>
+					))}
+				</select>
+			</label>
+			<p className="copy-13 secondary">{t("device.parserHint")}</p>
+			{assign.isError && (
+				<p className="copy-14 error" role="alert">
+					{t("device.parserError")}
+				</p>
+			)}
+		</div>
 	);
 }
