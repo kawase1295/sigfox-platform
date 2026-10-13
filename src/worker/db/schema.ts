@@ -1,4 +1,6 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { desc } from "drizzle-orm";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import type { Reception } from "#shared/devices";
 
 // Instance-wide key/value settings; exists mainly so the migration pipeline has a first table.
 export const settings = sqliteTable("settings", {
@@ -24,3 +26,33 @@ export const apiTokens = sqliteTable("api_tokens", {
 	revokedAt: integer("revoked_at", { mode: "timestamp_ms" }),
 	createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
 });
+
+// Why the Sigfox ID as primary key: callbacks only carry that ID, and it is unique per Sigfox backend.
+export const devices = sqliteTable("devices", {
+	id: text("id").primaryKey(),
+	name: text("name"),
+	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+	lastMessageAt: integer("last_message_at", { mode: "timestamp_ms" }),
+});
+
+export const messages = sqliteTable(
+	"messages",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		deviceId: text("device_id")
+			.notNull()
+			.references(() => devices.id, { onDelete: "cascade" }),
+		// Epoch seconds as Sigfox sends them; part of the identity, so never converted.
+		time: integer("time").notNull(),
+		seqNumber: integer("seq_number").notNull(),
+		data: text("data").notNull(),
+		receptions: text("receptions", { mode: "json" }).$type<Reception[]>().notNull(),
+		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+		updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+	},
+	(t) => [
+		// Why time in the key: seqNumber wraps around (12 bits), so it alone does not identify a frame.
+		uniqueIndex("messages_device_seq_time_unique").on(t.deviceId, t.seqNumber, t.time),
+		index("messages_device_time_idx").on(t.deviceId, desc(t.time), desc(t.id)),
+	],
+);

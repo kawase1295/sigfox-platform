@@ -1,24 +1,28 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
-import { LanguageToggle } from "../../src/web/components/language-toggle";
-import { I18nProvider } from "../../src/web/i18n";
-import { Home } from "../../src/web/routes/home";
+import { act, cleanup, fireEvent, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { renderApp } from "./helpers/render-app";
 
-afterEach(() => localStorage.clear());
+beforeEach(() => {
+	vi.stubGlobal(
+		"fetch",
+		vi.fn(async () => Response.json({ devices: [] })),
+	);
+});
 
-describe("Home with the language toggle", () => {
-	it("greets in English by default and switches to Japanese on toggle", async () => {
-		render(
-			<I18nProvider initial="en">
-				<LanguageToggle />
-				<Home />
-			</I18nProvider>,
-		);
-		expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Hello");
+afterEach(() => {
+	cleanup();
+	localStorage.clear();
+	vi.unstubAllGlobals();
+});
+
+describe("Shell with the language toggle", () => {
+	it("renders English by default and switches to Japanese on toggle", async () => {
+		renderApp("/");
+		expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("Devices");
 
 		await act(async () => fireEvent.click(screen.getByRole("button", { name: "日本語" })));
 
-		expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("こんにちは");
+		expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("デバイス");
 		expect(localStorage.getItem("locale")).toBe("ja");
 	});
 });

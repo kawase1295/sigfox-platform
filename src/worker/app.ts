@@ -5,6 +5,8 @@ import type { HealthResponse } from "#shared/health";
 import { type AccessKeySource, remoteAccessKeys } from "./auth/access";
 import { type AppEnv, accessAuth, apiTokenAuth } from "./auth/middleware";
 import { apiTokenRoutes } from "./routes/api-tokens";
+import { callbackRoutes } from "./routes/callbacks";
+import { deviceRoutes } from "./routes/devices";
 
 export type AppDeps = { accessKeys?: AccessKeySource };
 
@@ -18,7 +20,9 @@ export function createApp({ accessKeys = remoteAccessKeys }: AppDeps = {}) {
 	app.get("/health", (c) => c.json({ status: "ok" } satisfies HealthResponse));
 	app.get("/me", (c) => c.json({ email: c.var.user.email } satisfies MeResponse));
 	app.route("/tokens", apiTokenRoutes);
-	// Placeholder so the token guard is exercised until real Sigfox callbacks land.
+	app.route("/devices", deviceRoutes);
+	app.route("/callbacks", callbackRoutes);
+	// Lets operators test a token without creating Sigfox data; also exercised by the guard tests.
 	app.post("/callbacks/ping", (c) => c.body(null, 204));
 
 	app.notFound((c) => c.json({ error: "not_found" }, 404));
