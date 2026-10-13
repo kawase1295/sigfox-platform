@@ -4,14 +4,25 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-YARN=(npx -y yarn@1.22.22)
+echo "==> install"
+# Why --ignore-scripts + explicit rebuild: local npm runs with ignore-scripts=true and CI does not;
+# rebuilding only the packages that need native setup keeps both environments identical.
+npm ci --ignore-scripts --no-audit --no-fund
+npm rebuild workerd esbuild --ignore-scripts=false
 
-echo "==> backend: install"
-# --ignore-scripts: lint needs no native builds, and legacy postinstall hooks break on current Node.
-(cd backend && "${YARN[@]}" install --frozen-lockfile --ignore-scripts --silent)
+echo "==> biome"
+npx biome ci .
 
-echo "==> backend: lint"
-(cd backend && "${YARN[@]}" lint)
+echo "==> types"
+npx cf workers types
+npx tsc -b
 
-# Why not jest: backend tests are integration tests that require the API server (:3000) and MongoDB.
-# Why not frontend: Angular 11 toolchain is slated for replacement during modernization.
+echo "==> test"
+npx vitest run
+
+echo "==> wrangler.jsonc drift"
+node scripts/gen-wrangler.ts
+if ! git diff --exit-code -- wrangler.jsonc; then
+	echo "wrangler.jsonc is out of date. Run 'npm run gen:wrangler' and commit the result." >&2
+	exit 1
+fi

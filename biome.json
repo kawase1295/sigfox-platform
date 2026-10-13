@@ -1,0 +1,85 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"files": {
+		"includes": ["**", "!legacy", "!migrations/meta", "!wrangler.jsonc", "!package-lock.json"]
+	},
+	"formatter": { "lineWidth": 120 },
+	"linter": {
+		"rules": {
+			"preset": "recommended",
+			"style": {
+				"noRestrictedImports": {
+					"level": "error",
+					"options": {
+						"paths": {
+							"wrangler": "Use the `cf` CLI and cloudflare.config.ts; wrangler is only for the Deploy button."
+						}
+					}
+				}
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["shared/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/src/**", "hono", "hono/*", "react", "react-dom", "drizzle-orm", "drizzle-orm/*"],
+										"message": "shared/ holds runtime-agnostic contracts only."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/web/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/worker/**", "hono", "drizzle-orm", "drizzle-orm/*"],
+										"message": "The SPA talks to the Worker over HTTP; share types via #shared/* instead."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/worker/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/web/**", "react", "react-dom", "@tanstack/*"],
+										"message": "The Worker must not depend on SPA code."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
+}

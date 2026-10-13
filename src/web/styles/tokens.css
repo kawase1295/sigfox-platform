@@ -1,0 +1,138 @@
+/*
+ * Geist design tokens. Light and dark values are paired with light-dark(), so the theme follows
+ * prefers-color-scheme unless [data-theme] on <html> forces one.
+ * Why not duplicate a dark block per selector: light-dark() keeps each token's pair on one line.
+ */
+:root {
+	color-scheme: light dark;
+
+	--background-100: light-dark(#ffffff, #0a0a0a);
+	--background-200: light-dark(#fafafa, #000000);
+
+	--gray-100: light-dark(#f2f2f2, #1a1a1a);
+	--gray-200: light-dark(#ebebeb, #1f1f1f);
+	--gray-300: light-dark(#e6e6e6, #292929);
+	--gray-400: light-dark(#eaeaea, #2e2e2e);
+	--gray-500: light-dark(#c9c9c9, #454545);
+	--gray-600: light-dark(#a8a8a8, #878787);
+	--gray-700: light-dark(#8f8f8f, #8f8f8f);
+	--gray-800: light-dark(#7d7d7d, #7d7d7d);
+	--gray-900: light-dark(#666666, #a1a1a1);
+	--gray-1000: light-dark(#171717, #ededed);
+
+	--blue-100: light-dark(#f0f7ff, #06193a);
+	--blue-200: light-dark(#edf6ff, #022248);
+	--blue-300: light-dark(#e1f0ff, #0f2c55);
+	--blue-400: light-dark(#cde7ff, #0a3a74);
+	--blue-500: light-dark(#99ceff, #0a4b94);
+	--blue-600: light-dark(#52aeff, #0f6fe0);
+	--blue-700: light-dark(#006bff, #006bff);
+	--blue-800: light-dark(#0060d1, #0060d1);
+	--blue-900: light-dark(#0067d6, #47a8ff);
+	--blue-1000: light-dark(#0a3062, #eaf5ff);
+
+	--red-100: light-dark(#fff0f0, #330a0a);
+	--red-200: light-dark(#ffebeb, #3c0d0d);
+	--red-300: light-dark(#ffe5e5, #4c1112);
+	--red-400: light-dark(#fdd8d8, #5e1416);
+	--red-500: light-dark(#f8baba, #7d1a1e);
+	--red-600: light-dark(#f87878, #b42424);
+	--red-700: light-dark(#e5484d, #e5484d);
+	--red-800: light-dark(#da3036, #da3036);
+	--red-900: light-dark(#ca2a30, #ff6166);
+	--red-1000: light-dark(#381316, #ffe5e5);
+
+	--amber-100: light-dark(#fff6e5, #271700);
+	--amber-200: light-dark(#fff4d5, #291800);
+	--amber-300: light-dark(#fef0cd, #331b00);
+	--amber-400: light-dark(#ffddbf, #4d2a00);
+	--amber-500: light-dark(#ffc96b, #6b3e00);
+	--amber-600: light-dark(#f5b047, #a35d00);
+	--amber-700: light-dark(#ffb224, #ffb224);
+	--amber-800: light-dark(#ff990a, #ff990a);
+	--amber-900: light-dark(#a35200, #f2a20d);
+	--amber-1000: light-dark(#4e2009, #fef3dd);
+
+	--green-100: light-dark(#effbef, #0b2211);
+	--green-200: light-dark(#eafaea, #0f2c17);
+	--green-300: light-dark(#dcf6dc, #11351b);
+	--green-400: light-dark(#c8f1c9, #0c461b);
+	--green-500: light-dark(#99e59f, #126427);
+	--green-600: light-dark(#6cda76, #1a9338);
+	--green-700: light-dark(#46a758, #46a758);
+	--green-800: light-dark(#388e4a, #388e4a);
+	--green-900: light-dark(#297c3b, #63c174);
+	--green-1000: light-dark(#18311e, #e5fbeb);
+
+	--gray-alpha-100: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.06));
+	--gray-alpha-200: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.09));
+	--gray-alpha-300: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.13));
+	--gray-alpha-400: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.14));
+	--gray-alpha-500: light-dark(rgba(0, 0, 0, 0.21), rgba(255, 255, 255, 0.24));
+	--gray-alpha-600: light-dark(rgba(0, 0, 0, 0.34), rgba(255, 255, 255, 0.51));
+	--gray-alpha-700: light-dark(rgba(0, 0, 0, 0.44), rgba(255, 255, 255, 0.54));
+	--gray-alpha-800: light-dark(rgba(0, 0, 0, 0.51), rgba(255, 255, 255, 0.47));
+	--gray-alpha-900: light-dark(rgba(0, 0, 0, 0.61), rgba(255, 255, 255, 0.61));
+	--gray-alpha-1000: light-dark(rgba(0, 0, 0, 0.91), rgba(255, 255, 255, 0.92));
+
+	--font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", monospace;
+
+	/* Typography: font shorthand + letter-spacing per token. */
+	--heading-48: 600 48px / 56px var(--font-sans);
+	--heading-48-tracking: -2.88px;
+	--heading-32: 600 32px / 40px var(--font-sans);
+	--heading-32-tracking: -1.28px;
+	--heading-24: 600 24px / 32px var(--font-sans);
+	--heading-24-tracking: -0.96px;
+	--heading-20: 600 20px / 26px var(--font-sans);
+	--heading-20-tracking: -0.4px;
+	--heading-16: 600 16px / 24px var(--font-sans);
+	--heading-16-tracking: -0.32px;
+	--heading-14: 600 14px / 20px var(--font-sans);
+	--heading-14-tracking: -0.28px;
+	--label-16: 400 16px / 20px var(--font-sans);
+	--label-14: 400 14px / 20px var(--font-sans);
+	--label-13: 400 13px / 16px var(--font-sans);
+	--label-12: 400 12px / 16px var(--font-sans);
+	--label-14-mono: 400 14px / 20px var(--font-mono);
+	--copy-16: 400 16px / 24px var(--font-sans);
+	--copy-14: 400 14px / 20px var(--font-sans);
+	--copy-13: 400 13px / 18px var(--font-sans);
+	--copy-14-mono: 400 14px / 20px var(--font-mono);
+	--button-14: 500 14px / 20px var(--font-sans);
+	--button-12: 500 12px / 16px var(--font-sans);
+
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-6: 24px;
+	--space-8: 32px;
+	--space-10: 40px;
+	--space-16: 64px;
+	--space-24: 96px;
+
+	--radius-control: 6px;
+	--radius-menu: 12px;
+	--radius-surface: 16px;
+	--radius-pill: 9999px;
+
+	--shadow-card: 0 2px 2px rgba(0, 0, 0, 0.04);
+	--shadow-popover:
+		0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06);
+	--shadow-modal:
+		0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 24px 32px -8px rgba(0, 0, 0, 0.06);
+	--focus-ring: 0 0 0 2px var(--background-100), 0 0 0 4px #006bff;
+
+	--ease: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+	--content-width: 1200px;
+}
+
+:root[data-theme="light"] {
+	color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+	color-scheme: dark;
+}
