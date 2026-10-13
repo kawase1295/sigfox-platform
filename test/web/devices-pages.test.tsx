@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Device, Message } from "#shared/devices";
-import { ADVANCED_BODY_TEMPLATE, UPLINK_BODY_TEMPLATE } from "#shared/sigfox";
+import { ADVANCED_BODY_TEMPLATE, ERROR_BODY_TEMPLATE, UPLINK_BODY_TEMPLATE } from "#shared/sigfox";
 import { renderApp } from "./helpers/render-app";
 
 const device = (over: Partial<Device> = {}): Device => ({
@@ -11,6 +11,7 @@ const device = (over: Partial<Device> = {}): Device => ({
 	lastMessageAt: "2026-10-01T00:10:00.000Z",
 	messageCount: 3,
 	parserId: null,
+	lastError: null,
 	...over,
 });
 
@@ -63,6 +64,22 @@ describe("devices list", () => {
 		await waitFor(() => expect(router.state.location.pathname).toBe("/devices/1A2B3C"));
 	});
 
+	it("marks a device whose last ERROR callback is newer than its last message", async () => {
+		devices = [
+			device({ lastError: { time: "2026-10-02T00:00:00.000Z", severity: "ERROR", info: "Communication loss" } }),
+			device({
+				id: "4D5E6F",
+				lastError: { time: "2026-09-30T00:00:00.000Z", severity: "ERROR", info: "Communication loss" },
+			}),
+		];
+		renderApp("/");
+
+		const lost = (await screen.findByRole("link", { name: "1A2B3C" })).closest("tr") as HTMLElement;
+		expect(within(lost).getByText("Communication lost")).toBeTruthy();
+		const restored = screen.getByRole("link", { name: "4D5E6F" }).closest("tr") as HTMLElement;
+		expect(within(restored).queryByText("Communication lost")).toBeNull();
+	});
+
 	it("guides to callback setup when there are no devices", async () => {
 		devices = [];
 		renderApp("/");
@@ -90,6 +107,32 @@ describe("device detail", () => {
 	});
 });
 
+describe("device errors", () => {
+	const lastError = {
+		time: "2026-10-02T00:00:00.000Z",
+		severity: "ERROR",
+		info: "Communication loss since 2026-10-01",
+	};
+
+	it("shows the error while the device is silent", async () => {
+		devices = [device({ lastError })];
+		renderApp("/devices/1A2B3C");
+
+		const alert = (await screen.findByText("Communication lost")).closest("[role=alert]") as HTMLElement;
+		expect(alert.textContent).toContain("Communication lost");
+		expect(alert.textContent).toContain(lastError.info);
+	});
+
+	it("keeps the last error as history once a later message arrives", async () => {
+		devices = [device({ lastError, lastMessageAt: "2026-10-03T00:00:00.000Z" })];
+		renderApp("/devices/1A2B3C");
+
+		expect(await screen.findByText(lastError.info)).toBeTruthy();
+		expect(screen.getByText("Last error")).toBeTruthy();
+		expect(screen.queryByText("Communication lost")).toBeNull();
+	});
+});
+
 describe("callback setup", () => {
 	it("shows the endpoint and the exact body template", async () => {
 		renderApp("/settings/callback");
@@ -104,6 +147,9 @@ describe("callback setup", () => {
 		expect(ADVANCED_BODY_TEMPLATE).toBe(
 			'{"device":"{device}","time":{time},"seqNumber":{seqNumber},"data":"{data}","lqi":"{lqi}","duplicates":{duplicates},"computedLocation":{computedLocation}}',
 		);
+		expect(screen.getByText(`${location.origin}/api/callbacks/sigfox/error`)).toBeTruthy();
+		expect(screen.getByText(ERROR_BODY_TEMPLATE)).toBeTruthy();
+		expect(ERROR_BODY_TEMPLATE).toBe('{"device":"{device}","time":{time},"info":"{info}","severity":"{severity}"}');
 		const main = screen.getByRole("main");
 		expect(within(main).getByRole("link", { name: "API tokens" }).getAttribute("href")).toBe("/settings/tokens");
 	});

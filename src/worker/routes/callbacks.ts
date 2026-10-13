@@ -2,13 +2,19 @@ import { zValidator } from "@hono/zod-validator";
 import type { Context } from "hono";
 import { Hono } from "hono";
 import type { z } from "zod";
-import { advancedCallbackSchema, type InvalidBodyResponse, uplinkCallbackSchema } from "#shared/sigfox";
+import {
+	advancedCallbackSchema,
+	errorCallbackSchema,
+	type InvalidBodyResponse,
+	uplinkCallbackSchema,
+} from "#shared/sigfox";
 import type { AppEnv } from "../auth/middleware";
 import { createDb, type Db } from "../db/client";
 import type { LocationRow } from "../db/locations";
-import { publishIngest } from "../realtime/ingest-events";
+import { publishDevice, publishIngest } from "../realtime/ingest-events";
 import type { IngestResult } from "../services/ingest";
 import { ingestAdvanced } from "../services/ingest-advanced";
+import { ingestError } from "../services/ingest-error";
 import { ingestUplink } from "../services/ingest-uplink";
 import { gpsPosition, type Position, recordLocation, sigfoxPosition } from "../services/locations";
 import { parseMessage } from "../services/parse-message";
@@ -53,4 +59,11 @@ export const callbackRoutes = new Hono<AppEnv>()
 		const db = createDb(c.env.DB);
 		const body = c.req.valid("json");
 		return afterIngest(c, db, await ingestAdvanced(db, body), sigfoxPosition(body.computedLocation));
+	})
+	.post("/sigfox/error", validBody(errorCallbackSchema), async (c) => {
+		const db = createDb(c.env.DB);
+		const body = c.req.valid("json");
+		const { created } = await ingestError(db, body);
+		if (created) c.executionCtx.waitUntil(publishDevice(c.env, db, body.device));
+		return c.body(null, 204);
 	});

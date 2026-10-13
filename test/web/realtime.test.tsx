@@ -16,6 +16,7 @@ const device = (over: Partial<Device> = {}): Device => ({
 	lastMessageAt: "2026-10-01T00:10:00.000Z",
 	messageCount: 1,
 	parserId: null,
+	lastError: null,
 	...over,
 });
 

@@ -1,7 +1,7 @@
 import { inArray, lt } from "drizzle-orm";
 import type { SQLiteColumn, SQLiteTable } from "drizzle-orm/sqlite-core";
 import { createDb } from "../db/client";
-import { locations, messages } from "../db/schema";
+import { deviceEvents, locations, messages } from "../db/schema";
 
 export const DEFAULT_RETENTION_DAYS = 365;
 
@@ -33,6 +33,7 @@ export type PurgeTarget = {
 export const PURGE_TARGETS: PurgeTarget[] = [
 	{ name: "locations", table: locations, id: locations.id, time: locations.time, unit: "s" },
 	{ name: "messages", table: messages, id: messages.id, time: messages.time, unit: "s" },
+	{ name: "device_events", table: deviceEvents, id: deviceEvents.id, time: deviceEvents.time, unit: "s" },
 ];
 
 export type PurgeOptions = {

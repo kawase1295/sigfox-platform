@@ -20,6 +20,7 @@ const device: Device = {
 	lastMessageAt: "2026-10-01T00:10:00.000Z",
 	messageCount: 2,
 	parserId: null,
+	lastError: null,
 };
 
 const message = (id: number, over: Partial<Message>): Message => ({

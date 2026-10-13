@@ -2,7 +2,7 @@
 
 A self-hosted dashboard for Sigfox devices that runs entirely on your own Cloudflare account.
 
-- **Callback ingest**: the Sigfox backend posts DATA/UPLINK and DATA_ADVANCED callbacks to your Worker. Devices register themselves on their first message; redelivered or out-of-order frames are merged, not duplicated.
+- **Callback ingest**: the Sigfox backend posts DATA/UPLINK, DATA_ADVANCED and ERROR callbacks to your Worker. Devices register themselves on their first callback; redelivered or out-of-order frames are merged, not duplicated.
 - **Parsers**: decode payloads with your own JavaScript, run in a QuickJS sandbox for every message. Samples for common devices are included.
 - **Map**: GPS positions from parser output and Sigfox Atlas locations from DATA_ADVANCED, on MapLibre with OpenFreeMap tiles (no API key).
 - **Realtime**: new messages, devices and locations appear without reloading (Durable Object WebSockets).
@@ -82,9 +82,18 @@ In the [Sigfox backend](https://backend.sigfox.com/), open your device type, go 
 
 `{duplicates}` and `{computedLocation}` are inserted unquoted because Sigfox fills them with JSON. Remove them from the body if your contract lacks the Network metadata or Atlas option.
 
-You can use either callback or both; a frame received through both is stored once (keyed by device, sequence number and time). A successful callback returns `204`. A body that does not match returns `400` with the offending fields, and a missing or revoked token returns `401`.
+**ERROR**: reports a device that missed the keep-alive set on its device type (communication loss). The device is shown as lost until its next message, and the last error stays on the device page.
 
-BIDIR, SERVICE/ACKNOWLEDGE and ERROR callbacks are not supported yet.
+- URL: `https://<your-hostname>/api/callbacks/sigfox/error`
+- Body:
+
+```text
+{"device":"{device}","time":{time},"info":"{info}","severity":"{severity}"}
+```
+
+You can use either DATA callback or both; a frame received through both is stored once (keyed by device, sequence number and time). A successful callback returns `204`. A body that does not match returns `400` with the offending fields, and a missing or revoked token returns `401`.
+
+BIDIR and SERVICE/ACKNOWLEDGE callbacks are not supported yet.
 
 ## Parsers
 
@@ -110,7 +119,7 @@ Create parsers under **Parsers**, test them against a payload in the editor, and
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `RETENTION_DAYS` | `365` | Days of messages to keep. `0` keeps everything. Devices are never deleted. |
+| `RETENTION_DAYS` | `365` | Days of messages, locations and device errors to keep. `0` keeps everything. Devices are never deleted. |
 | `MAP_STYLE_URL` | `https://tiles.openfreemap.org/styles/liberty` | Any MapLibre style JSON URL. |
 
 Change them in [`cloudflare.config.ts`](cloudflare.config.ts), run `npm run gen:wrangler`, and commit both files to your copy of the repository. Values edited in the Cloudflare dashboard are overwritten by the next deploy, because every deploy sends the values from `wrangler.jsonc`. Wrangler's `keep_vars` does not help here: it only keeps dashboard variables that the config does not define, and these two are defined so a fresh deploy works without setup.

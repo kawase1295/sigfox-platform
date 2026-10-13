@@ -25,6 +25,9 @@ export const ja: Dictionary = {
 	"devices.name": "名前",
 	"devices.lastMessageAt": "最終メッセージ",
 	"devices.messageCount": "メッセージ数",
+	"devices.status": "状態",
+	"device.communicationLost": "通信途絶",
+	"device.lastError": "最後のエラー",
 	"device.back": "デバイス一覧",
 	"device.loadError": "デバイスを読み込めませんでした。ページを再読み込みしてください。",
 	"device.namePlaceholder": "例: 倉庫トラッカー",
@@ -147,4 +150,6 @@ export const ja: Dictionary = {
 	"callback.uplinkBody": "メッセージと、それを受信した基地局を記録します。",
 	"callback.advancedBody":
 		"通信品質、基地局ごとの受信回数、Sigfox による位置を追加します。Network metadata または Atlas オプションを契約していない場合は、ボディから duplicates または computedLocation を削除してください。",
+	"callback.errorBody":
+		"デバイスがデバイスタイプに設定したキープアライブ内に通信しなかったことを通知します。次のメッセージを受信するまで通信途絶と表示します。",
 };

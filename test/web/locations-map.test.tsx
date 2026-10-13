@@ -18,6 +18,7 @@ const device = (id: string, name: string | null = null): Device => ({
 	lastMessageAt: "2026-10-01T00:10:00.000Z",
 	messageCount: 1,
 	parserId: null,
+	lastError: null,
 });
 
 const location = (id: number, over: Partial<Location> = {}): Location => ({

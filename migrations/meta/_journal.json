@@ -36,6 +36,13 @@
       "when": 1791869140269,
       "tag": "0004_advanced_locations",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791877677990,
+      "tag": "0005_device_events",
+      "breakpoints": true
     }
   ]
 }

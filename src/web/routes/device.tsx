@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
-import type { Message } from "#shared/devices";
+import { communicationLost, type Device, type Message } from "#shared/devices";
 import { getDevice, listMessages, listParsers, listTrack, updateDevice } from "../api/client";
 import { locationLines, MapPanel } from "../components/map-panel";
 import { ParsedValues } from "../components/parsed-values";
@@ -37,6 +37,7 @@ export function DevicePage({ deviceId }: { deviceId: string }) {
 					{t("device.loadError")}
 				</p>
 			)}
+			{device.data && <DeviceErrorNotice device={device.data} />}
 			{device.data && <RenameForm deviceId={deviceId} name={device.data.name} />}
 			{device.data && <ParserSelect deviceId={deviceId} parserId={device.data.parserId} />}
 
@@ -113,6 +114,33 @@ export function DevicePage({ deviceId }: { deviceId: string }) {
 				</>
 			)}
 		</section>
+	);
+}
+
+/** Sigfox sends no "restored" callback, so a later message is what turns the alert into history. */
+function DeviceErrorNotice({ device }: { device: Device }) {
+	const { t, locale } = useI18n();
+	const error = device.lastError;
+	if (!error) return null;
+	if (communicationLost(device)) {
+		return (
+			<div className="callout" role="alert">
+				<strong className="strong">{t("device.communicationLost")}</strong>
+				<span className="copy-14">{error.info}</span>
+				<span className="mono">{formatDateTime(error.time, locale)}</span>
+			</div>
+		);
+	}
+	return (
+		<dl className="settings-list">
+			<div>
+				<dt className="label-13 secondary">{t("device.lastError")}</dt>
+				<dd className="stack">
+					<span className="mono">{formatDateTime(error.time, locale)}</span>
+					<span className="copy-14 secondary">{error.info}</span>
+				</dd>
+			</div>
+		</dl>
 	);
 }
 

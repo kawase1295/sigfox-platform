@@ -17,6 +17,7 @@ const deviceEvent = (id = randomHex(8)): DeviceEvent => ({
 		lastMessageAt: null,
 		messageCount: 0,
 		parserId: null,
+		lastError: null,
 	},
 });
 

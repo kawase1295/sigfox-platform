@@ -6,6 +6,13 @@ export const deviceIdSchema = z
 	.regex(/^[0-9a-fA-F]{1,8}$/)
 	.transform((s) => s.toUpperCase());
 
+/** The newest Sigfox ERROR callback (keep-alive breach) for a device. */
+export const deviceErrorSchema = z.strictObject({
+	time: z.iso.datetime(),
+	severity: z.string(),
+	info: z.string(),
+});
+
 export const deviceSchema = z.strictObject({
 	id: z.string(),
 	name: z.string().nullable(),
@@ -13,6 +20,7 @@ export const deviceSchema = z.strictObject({
 	lastMessageAt: z.iso.datetime().nullable(),
 	messageCount: z.number().int().nonnegative(),
 	parserId: z.string().nullable(),
+	lastError: deviceErrorSchema.nullable(),
 });
 
 export const receptionSchema = z.strictObject({
@@ -75,9 +83,14 @@ export const updateDeviceRequestSchema = z
 	.refine((r) => r.name !== undefined || r.parserId !== undefined, "Nothing to update");
 
 export type Device = z.infer<typeof deviceSchema>;
+export type DeviceError = z.infer<typeof deviceErrorSchema>;
 export type Reception = z.infer<typeof receptionSchema>;
 export type Lqi = z.infer<typeof lqiSchema>;
 export type Message = z.infer<typeof messageSchema>;
 export type DeviceList = z.infer<typeof deviceListSchema>;
 export type MessagePage = z.infer<typeof messagePageSchema>;
 export type UpdateDeviceRequest = z.input<typeof updateDeviceRequestSchema>;
+
+/** Lost until a message newer than the last ERROR callback arrives; Sigfox sends no "restored" callback. */
+export const communicationLost = (d: Pick<Device, "lastError" | "lastMessageAt">) =>
+	d.lastError !== null && (d.lastMessageAt === null || Date.parse(d.lastMessageAt) <= Date.parse(d.lastError.time));

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { communicationLost } from "#shared/devices";
 import { listDevices, listLatestLocations } from "../api/client";
 import { locationLines, MapPanel } from "../components/map-panel";
 import { formatDateTime } from "../format";
@@ -49,6 +50,7 @@ export function DevicesPage() {
 								<th>{t("devices.name")}</th>
 								<th>{t("devices.lastMessageAt")}</th>
 								<th className="numeric">{t("devices.messageCount")}</th>
+								<th>{t("devices.status")}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -62,6 +64,15 @@ export function DevicesPage() {
 									<td>{device.name ?? "—"}</td>
 									<td className="mono">{formatDateTime(device.lastMessageAt, locale)}</td>
 									<td className="mono numeric">{device.messageCount}</td>
+									<td>
+										{communicationLost(device) ? (
+											<span className="badge" data-state="error">
+												{t("device.communicationLost")}
+											</span>
+										) : (
+											"—"
+										)}
+									</td>
 								</tr>
 							))}
 						</tbody>

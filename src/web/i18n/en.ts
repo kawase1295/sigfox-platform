@@ -23,6 +23,9 @@ export const en = {
 	"devices.name": "Name",
 	"devices.lastMessageAt": "Last message",
 	"devices.messageCount": "Messages",
+	"devices.status": "Status",
+	"device.communicationLost": "Communication lost",
+	"device.lastError": "Last error",
 	"device.back": "All devices",
 	"device.loadError": "The device could not be loaded. Reload the page to try again.",
 	"device.namePlaceholder": "e.g. Warehouse tracker",
@@ -144,6 +147,8 @@ export const en = {
 	"callback.uplinkBody": "Stores each message with the base stations that heard it.",
 	"callback.advancedBody":
 		"Adds link quality, repetitions per station and the Sigfox location. Remove duplicates or computedLocation from the body if your contract lacks the Network metadata or Atlas option.",
+	"callback.errorBody":
+		"Reports when a device misses the keep-alive set on its device type. The device is shown as lost until its next message.",
 } as const;
 
 export type MessageKey = keyof typeof en;
