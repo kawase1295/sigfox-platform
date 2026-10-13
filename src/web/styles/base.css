@@ -113,7 +113,8 @@ p {
 	color: var(--gray-1000);
 }
 
-.api-status {
+.api-status,
+.realtime-status {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-2);
@@ -121,7 +122,8 @@ p {
 	color: var(--gray-900);
 }
 
-.api-status .dot {
+.api-status .dot,
+.realtime-status .dot {
 	width: 8px;
 	height: 8px;
 	border-radius: var(--radius-pill);
@@ -134,6 +136,18 @@ p {
 
 .api-status[data-state="error"] .dot {
 	background: var(--red-700);
+}
+
+.realtime-status {
+	white-space: nowrap;
+}
+
+.realtime-status[data-state="open"] .dot {
+	background: var(--green-700);
+}
+
+.realtime-status[data-state="reconnecting"] .dot {
+	background: var(--amber-700);
 }
 
 h2 {

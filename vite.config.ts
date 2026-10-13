@@ -20,10 +20,17 @@ export default defineConfig(async () => {
 									// Lets integration tests call the default export as the dev user; Access paths inject their own env.
 									AUTH_DEV_BYPASS: "1",
 								},
+								// Why redeclared: the pool keeps the self-referencing worker name of the binding and then
+								// cannot resolve it (workers-sdk#16012). Drop once that issue is fixed.
+								durableObjects: { REALTIME: { className: "RealtimeHub", useSQLite: true } },
 							},
 						}),
 					],
-					test: { name: "worker", include: ["test/worker/**/*.test.ts"], setupFiles: ["./test/apply-migrations.ts"] },
+					test: {
+						name: "worker",
+						include: ["test/worker/**/*.test.ts"],
+						setupFiles: ["./test/apply-migrations.ts", "./test/warm-realtime.ts"],
+					},
 				},
 				{
 					plugins: [react()],

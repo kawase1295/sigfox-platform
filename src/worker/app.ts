@@ -8,6 +8,7 @@ import { apiTokenRoutes } from "./routes/api-tokens";
 import { callbackRoutes } from "./routes/callbacks";
 import { deviceRoutes } from "./routes/devices";
 import { parserRoutes } from "./routes/parsers";
+import { realtimeRoutes } from "./routes/realtime";
 
 export type AppDeps = { accessKeys?: AccessKeySource };
 
@@ -24,6 +25,7 @@ export function createApp({ accessKeys = remoteAccessKeys }: AppDeps = {}) {
 	app.route("/devices", deviceRoutes);
 	app.route("/parsers", parserRoutes);
 	app.route("/callbacks", callbackRoutes);
+	app.route("/realtime", realtimeRoutes);
 	// Lets operators test a token without creating Sigfox data; also exercised by the guard tests.
 	app.post("/callbacks/ping", (c) => c.body(null, 204));
 

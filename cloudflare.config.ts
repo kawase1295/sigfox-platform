@@ -1,4 +1,4 @@
-import { bindings, defineConfig, triggers } from "cf/config";
+import { bindings, defineConfig, exports, triggers } from "cf/config";
 import * as entrypoint from "./src/worker/index.ts" with { type: "cf-worker" };
 
 // Why not omit the id everywhere: `cf d1 migrations --local` only accepts a UUID (cloudflare/cf#38).
@@ -20,12 +20,14 @@ export default defineConfig(({ mode }) => ({
 		name: "sigfox-platform",
 		compatibilityDate: "2026-10-06",
 		entrypoint,
+		exports: { RealtimeHub: exports.durableObject({ storage: "sqlite" }) },
 		assets: { notFoundHandling: "single-page-application", runWorkerFirst: ["/api/*"] },
 		env: {
 			DB: bindings.d1({ name: "sigfox-platform-db", id: mode === "production" ? undefined : LOCAL_D1_ID }),
 			ASSETS: bindings.assets(),
 			// Days of messages to keep; "0" keeps everything. A plain var so the Deploy button and dashboard can edit it.
 			RETENTION_DAYS: bindings.text<string>("365"),
+			REALTIME: bindings.durableObject({ worker: "sigfox-platform", exportName: "RealtimeHub" }),
 			...authEnv(mode),
 		},
 		// Daily retention purge (src/worker/services/retention.ts), off-peak UTC.
