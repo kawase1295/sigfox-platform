@@ -22,3 +22,8 @@ The old stack lives in `legacy/` for reference only; do not modify it.
 - Vitest config lives in `vite.config.ts` (`process.env.VITEST` switches to the workerd test pool); there is no `vitest.config.*`.
 - `cf d1 migrations` takes the placeholder database id (see `LOCAL_D1_ID`), not a name, and needs `--persist-to .cloudflare/state` or `cf dev` will not see the tables.
 - Runtime types for `Env` are generated into `.cloudflare/types` by `npx cf workers types` (scripts/check does this).
+
+## Auth
+- `/api/*` requires a Cloudflare Access JWT (`Cf-Access-Jwt-Assertion`), verified against `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD`. `/api/health` is public; `/api/callbacks/*` takes `Authorization: Bearer sfp_…` API tokens instead.
+- Local dev: copy `.dev.vars.example` to `.dev.vars` (`AUTH_DEV_BYPASS=1`; `cloudflare.config.ts` declares it only outside production, and only declared secrets get `.dev.vars` values). The bypass works only with no Access vars set and a loopback host; anything else fails closed (see `src/worker/auth/access.ts`).
+- Tests inject a local JWKS through `createApp({ accessKeys })`; never fetch real Access certs in tests.

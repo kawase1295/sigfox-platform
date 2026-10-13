@@ -10,6 +10,12 @@
 			"migrations_dir": "migrations"
 		}
 	],
+	"secrets": {
+		"required": [
+			"ACCESS_TEAM_DOMAIN",
+			"ACCESS_AUD"
+		]
+	},
 	"assets": {
 		"directory": ".cloudflare/output/v0/workers/default/assets",
 		"binding": "ASSETS",
