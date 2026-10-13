@@ -10,3 +10,6 @@ dist/
 .DS_Store
 .idea/
 *.tsbuildinfo
+
+# Agent worktrees (nested repos confuse Biome and git status)
+.claude/worktrees/
