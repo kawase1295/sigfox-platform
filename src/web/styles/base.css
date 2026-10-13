@@ -383,3 +383,66 @@ h2 {
 	overflow-wrap: anywhere;
 	user-select: all;
 }
+
+.link {
+	color: inherit;
+	text-decoration: none;
+}
+
+.link:hover {
+	text-decoration: underline;
+}
+
+.table .numeric {
+	text-align: right;
+}
+
+.empty {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--space-4);
+	padding: var(--space-8) var(--space-6);
+	border: 1px dashed var(--gray-alpha-400);
+	border-radius: var(--radius-control);
+}
+
+a.button {
+	display: inline-flex;
+	align-items: center;
+	text-decoration: none;
+}
+
+.load-more {
+	align-self: center;
+}
+
+.settings-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	margin: 0;
+}
+
+.settings-list > div {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.settings-list dd {
+	margin: 0;
+	min-width: 0;
+}
+
+.copy-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: var(--space-2);
+}
+
+.copy-row .secret {
+	flex: 1 1 320px;
+	min-width: 0;
+}
