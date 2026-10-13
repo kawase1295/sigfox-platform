@@ -6,5 +6,12 @@ import { realtimeHub } from "../src/worker/realtime/publish";
 // Loading the hub up front leaves late publishes nothing to resolve.
 await realtimeHub(env, "warm-up").broadcast({
 	type: "device.upserted",
-	device: { id: "WARMUP", name: null, createdAt: new Date(0).toISOString(), lastMessageAt: null, messageCount: 0 },
+	device: {
+		id: "WARMUP",
+		name: null,
+		createdAt: new Date(0).toISOString(),
+		lastMessageAt: null,
+		messageCount: 0,
+		parserId: null,
+	},
 });

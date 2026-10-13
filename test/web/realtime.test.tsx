@@ -14,6 +14,7 @@ const device = (over: Partial<Device> = {}): Device => ({
 	createdAt: "2026-10-01T00:00:00.000Z",
 	lastMessageAt: "2026-10-01T00:10:00.000Z",
 	messageCount: 1,
+	parserId: null,
 	...over,
 });
 
@@ -26,6 +27,8 @@ const message = (id: number, over: Partial<Message> = {}): Message => ({
 	receptions: [{ station: "AAAA", rssi: -120, snr: 10, source: "uplink" }],
 	createdAt: "2026-10-01T00:00:00.000Z",
 	updatedAt: "2026-10-01T00:00:00.000Z",
+	parsed: null,
+	parseError: null,
 	...over,
 });
 

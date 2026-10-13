@@ -10,7 +10,14 @@ import { acceptSocket, type TestSocket, upgradeHeaders } from "./helpers/ws";
 type DeviceEvent = Extract<RealtimeEvent, { type: "device.upserted" }>;
 const deviceEvent = (id = randomHex(8)): DeviceEvent => ({
 	type: "device.upserted",
-	device: { id, name: null, createdAt: "2026-10-01T00:00:00.000Z", lastMessageAt: null, messageCount: 0 },
+	device: {
+		id,
+		name: null,
+		createdAt: "2026-10-01T00:00:00.000Z",
+		lastMessageAt: null,
+		messageCount: 0,
+		parserId: null,
+	},
 });
 
 let sockets: TestSocket[] = [];

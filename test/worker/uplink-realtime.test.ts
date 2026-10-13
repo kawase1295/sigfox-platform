@@ -4,7 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import type { RealtimeEvent } from "#shared/realtime";
 import { createApp } from "../../src/worker/app";
 import { realtimeHub } from "../../src/worker/realtime/publish";
-import { createToken, json, randomHex } from "./helpers/api";
+import { api, createToken, json, randomHex } from "./helpers/api";
 import { acceptSocket, type TestSocket, upgradeHeaders } from "./helpers/ws";
 
 let bearer: string;
@@ -79,6 +79,26 @@ describe("uplink callback realtime events", () => {
 		const events = await drain(body.device);
 		expect(events.map((e) => e.type)).toEqual(["message.upserted"]);
 		expect(events[0]).toMatchObject({ message: { receptions: [{ station: "1A2B" }, { station: "BEEF" }] } });
+	});
+
+	it("publishes the message with its parsed values", async () => {
+		const body = callback({ data: "64" });
+		await uplink(body);
+		await drain(body.device);
+		const parser = await api(
+			"/parsers",
+			json("POST", {
+				name: "First byte",
+				code: `return [{ key: "b0", value: parseInt(payload.slice(0, 2), 16), type: "number" }];`,
+			}),
+		);
+		const { id: parserId } = (await parser.json()) as { id: string };
+		await api(`/devices/${body.device}`, json("PATCH", { parserId }));
+
+		await uplink({ ...body, seqNumber: 2, time: body.time + 600 });
+
+		const [event] = (await drain(body.device)).filter((e) => e.type === "message.upserted");
+		expect(event).toMatchObject({ message: { seqNumber: 2, parsed: [{ key: "b0", value: 100 }], parseError: null } });
 	});
 
 	it("publishes nothing for an exact redelivery", async () => {
