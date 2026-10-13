@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parsedEntrySchema, parseErrorSchema } from "./parsers";
 
 export const deviceIdSchema = z
 	.string()
@@ -11,6 +12,7 @@ export const deviceSchema = z.strictObject({
 	createdAt: z.iso.datetime(),
 	lastMessageAt: z.iso.datetime().nullable(),
 	messageCount: z.number().int().nonnegative(),
+	parserId: z.string().nullable(),
 });
 
 export const receptionSchema = z.strictObject({
@@ -30,6 +32,9 @@ export const messageSchema = z.strictObject({
 	receptions: z.array(receptionSchema),
 	createdAt: z.iso.datetime(),
 	updatedAt: z.iso.datetime(),
+	/** Null until the device's parser ran on this message, or when it failed (see parseError). */
+	parsed: z.array(parsedEntrySchema).nullable(),
+	parseError: parseErrorSchema.nullable(),
 });
 
 export const deviceListSchema = z.strictObject({ devices: z.array(deviceSchema) });
@@ -48,14 +53,18 @@ export const messagePageSchema = z.strictObject({
 });
 
 // Empty names clear the label rather than storing "".
-export const updateDeviceRequestSchema = z.strictObject({
-	name: z
-		.string()
-		.trim()
-		.max(100)
-		.nullable()
-		.transform((s) => s || null),
-});
+export const updateDeviceRequestSchema = z
+	.strictObject({
+		name: z
+			.string()
+			.trim()
+			.max(100)
+			.nullable()
+			.transform((s) => s || null)
+			.optional(),
+		parserId: z.string().min(1).nullable().optional(),
+	})
+	.refine((r) => r.name !== undefined || r.parserId !== undefined, "Nothing to update");
 
 export type Device = z.infer<typeof deviceSchema>;
 export type Reception = z.infer<typeof receptionSchema>;

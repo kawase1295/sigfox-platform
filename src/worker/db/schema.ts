@@ -1,6 +1,7 @@
 import { desc } from "drizzle-orm";
 import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import type { Reception } from "#shared/devices";
+import type { ParsedEntry, ParseError } from "#shared/parsers";
 
 // Instance-wide key/value settings; exists mainly so the migration pipeline has a first table.
 export const settings = sqliteTable("settings", {
@@ -27,12 +28,21 @@ export const apiTokens = sqliteTable("api_tokens", {
 	createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
 });
 
+export const parsers = sqliteTable("parsers", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	code: text("code").notNull(),
+	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+	updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
 // Why the Sigfox ID as primary key: callbacks only carry that ID, and it is unique per Sigfox backend.
 export const devices = sqliteTable("devices", {
 	id: text("id").primaryKey(),
 	name: text("name"),
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 	lastMessageAt: integer("last_message_at", { mode: "timestamp_ms" }),
+	parserId: text("parser_id").references(() => parsers.id, { onDelete: "set null" }),
 });
 
 export const messages = sqliteTable(
@@ -49,6 +59,10 @@ export const messages = sqliteTable(
 		receptions: text("receptions", { mode: "json" }).$type<Reception[]>().notNull(),
 		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 		updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+		// Set together: parsed on success, parseError on failure, parsedAt either way (null = never parsed).
+		parsed: text("parsed", { mode: "json" }).$type<ParsedEntry[]>(),
+		parseError: text("parse_error", { mode: "json" }).$type<ParseError>(),
+		parsedAt: integer("parsed_at", { mode: "timestamp_ms" }),
 	},
 	(t) => [
 		// Why time in the key: seqNumber wraps around (12 bits), so it alone does not identify a frame.

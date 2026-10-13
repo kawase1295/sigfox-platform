@@ -10,6 +10,7 @@ const device = (over: Partial<Device> = {}): Device => ({
 	createdAt: "2026-10-01T00:00:00.000Z",
 	lastMessageAt: "2026-10-01T00:10:00.000Z",
 	messageCount: 3,
+	parserId: null,
 	...over,
 });
 
@@ -25,6 +26,8 @@ const message = (seqNumber: number): Message => ({
 	],
 	createdAt: "2026-10-01T00:00:00.000Z",
 	updatedAt: "2026-10-01T00:00:00.000Z",
+	parsed: null,
+	parseError: null,
 });
 
 let devices: Device[];
